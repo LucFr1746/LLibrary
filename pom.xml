@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.lucfr1746</groupId>
+    <artifactId>LLibrary</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>LLibrary</name>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>lucfr1746</id>
+            <name>LucFr1746</name>
+            <email>lucfr.1746@gmail.com</email>
+            <url>https://lucfr1746.github.io/</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/LucFr1746/LLibrary</url>
+        <connection>scm:git:git://github.com/LucFr1746/LLibrary.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:LucFr1746/LLibrary.git</developerConnection>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
+
+    <build>
+        <defaultGoal>clean package</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <relocations>
+                        <!-- NBTAPI -->
+                        <relocation>
+                            <pattern>de.tr7zw.changeme.nbtapi</pattern>
+                            <shadedPattern>io.github.lucfr1746.shade.nbtapi</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <!-- CommandAPI -->
+                            <pattern>dev.jorel.commandapi</pattern>
+                            <shadedPattern>io.github.lucfr1746.shade.commandapi</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>io.github.lucfr1746.Main</mainClass>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    </transformers>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>spigotmc-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+        </repository>
+        <repository>
+            <id>sonatype</id>
+            <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+        <!-- NBTAPI -->
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.io/repository/maven-public/</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.21.4-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>26.0.1</version>
+            <scope>compile</scope>
+        </dependency>
+        <!-- NBTAPI -->
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api-plugin</artifactId>
+            <version>2.14.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- CommandAPI -->
+        <dependency>
+            <groupId>dev.jorel</groupId>
+            <artifactId>commandapi-bukkit-shade</artifactId>
+            <version>9.7.0</version>
+        </dependency>
+    </dependencies>
+</project>
