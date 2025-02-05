@@ -29,7 +29,8 @@ jobs:
 
       - name: Copy Javadoc artifacts
         run: |
-          cp -r LLibrary/target/site/apidocs
+          mkdir -p artifacts/LLibrary-api
+          cp -r LLibrary/target/site/apidocs artifacts/LLibrary-api/
 
       - name: Deploy Javadoc 🚀
         uses: JamesIves/github-pages-deploy-action@v4.4.1
