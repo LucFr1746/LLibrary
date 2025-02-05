@@ -25,18 +25,20 @@ jobs:
           java-version: '21'
 
       - name: Build with Maven
-        run: mvn clean package javadoc:javadoc
+        run: mvn clean package javadoc:javadoc -X
+
+      - name: List contents of target/reports
+        run: ls -R LLibrary/target/reports
 
       - name: Copy Javadoc artifacts
         run: |
           mkdir -p artifacts/LLibrary-api
-          if [ -d "LLibrary/target/reports/apidocs" ]; then
-            cp -r LLibrary/target/reports/apidocs/* artifacts/LLibrary-api/
-          else
-            echo "Javadoc not found!"
+          if [ ! -d "LLibrary/target/reports/apidocs" ]; then
+            echo "Javadoc not found at expected location!"
             exit 1
+          else
+            cp -r LLibrary/target/reports/apidocs/* artifacts/LLibrary-api/
           fi
-      
 
       - name: Deploy Javadoc 🚀
         uses: JamesIves/github-pages-deploy-action@v4.4.1
