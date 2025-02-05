@@ -152,6 +152,17 @@ public class ItemBuilder {
     }
 
     /**
+     * Converts the current {@link ItemStack} into a {@link BookBuilder}.
+     * The {@code ItemStack} is passed into the {@code BookBuilder} constructor to allow for
+     * further modifications on the book.
+     *
+     * @return a new {@link BookBuilder} instance, initialized with the current {@link ItemStack}.
+     */
+    public BookBuilder getBookBuilder() {
+        return new BookBuilder(this.itemStack);
+    }
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
