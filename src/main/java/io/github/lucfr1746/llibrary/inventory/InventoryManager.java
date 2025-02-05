@@ -53,7 +53,7 @@ public class InventoryManager {
      * @param inventory The {@link Inventory} that is being registered.
      * @param inventoryBuilderAPI The {@link InventoryBuilder} instance that handles events for the inventory.
      */
-    public void registerActiveInventory(Inventory inventory, InventoryBuilder inventoryBuilderAPI) {
+    private void registerActiveInventory(Inventory inventory, InventoryBuilder inventoryBuilderAPI) {
         activeInventories.put(inventory, inventoryBuilderAPI);
     }
 
@@ -63,7 +63,7 @@ public class InventoryManager {
      *
      * @param inventory The {@link Inventory} to be unregistered.
      */
-    public void unregisterInventory(Inventory inventory) {
+    private void unregisterInventory(Inventory inventory) {
         activeInventories.remove(inventory);
     }
 
