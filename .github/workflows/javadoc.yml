@@ -27,9 +27,6 @@ jobs:
       - name: Build with Maven
         run: mvn clean package javadoc:javadoc -X
 
-      - name: List contents of target/reports
-        run: ls -R LLibrary/target/reports
-
       - name: List contents of target/site
         run: ls -R LLibrary/target/site || echo "No site directory found"
 
@@ -42,7 +39,6 @@ jobs:
           else
             cp -r LLibrary/target/site/apidocs/* artifacts/LLibrary-api/
           fi
-      
 
       - name: Deploy Javadoc 🚀
         uses: JamesIves/github-pages-deploy-action@v4.4.1
