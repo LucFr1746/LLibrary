@@ -72,7 +72,7 @@ public class InventoryManager {
      *
      * @param event The {@link InventoryClickEvent} that occurred.
      */
-    public void handleClick(InventoryClickEvent event) {
+    void handleClick(InventoryClickEvent event) {
         processInventoryEvent(event.getInventory(), handler -> handler.onClick(event));
     }
 
@@ -81,7 +81,7 @@ public class InventoryManager {
      *
      * @param event The {@link InventoryOpenEvent} that occurred.
      */
-    public void handleOpen(InventoryOpenEvent event) {
+    void handleOpen(InventoryOpenEvent event) {
         processInventoryEvent(event.getInventory(), handler -> handler.onOpen(event));
     }
 
@@ -91,7 +91,7 @@ public class InventoryManager {
      *
      * @param event The {@link InventoryCloseEvent} that occurred.
      */
-    public void handleClose(InventoryCloseEvent event) {
+    void handleClose(InventoryCloseEvent event) {
         Inventory inventory = event.getInventory();
         processInventoryEvent(inventory, handler -> handler.onClose(event));
         unregisterInventory(inventory);
