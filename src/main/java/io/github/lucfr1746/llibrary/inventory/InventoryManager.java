@@ -19,7 +19,7 @@ public class InventoryManager {
 
     /**
      * Default constructor for {@link InventoryManager}.
-     * Initializes an empty set of active inventories.
+     * Called when need to open inventory for player.
      */
     public InventoryManager() {
         // Default constructor with no specific initialization logic
