@@ -69,7 +69,7 @@ public record ItemAttributeBuilder(@NotNull ItemStack itemStack) {
         if (slot == null) {
             slot = EquipmentSlotGroup.ANY;
         }
-        AttributeModifier modifier = new AttributeModifier(attribute.getKeyOrThrow(), amount, operation, slot);
+        AttributeModifier modifier = new AttributeModifier(attribute.getKey(), amount, operation, slot);
         return addAttributeModifier(attribute, modifier);
     }
 
