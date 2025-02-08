@@ -2,14 +2,8 @@ package io.github.lucfr1746.llibrary;
 
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
+import io.github.lucfr1746.llibrary.metrics.bStats;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.Objects;
 
 /**
  * The main class for the {@link LLibrary} plugin.
@@ -33,6 +27,7 @@ public final class LLibrary extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        new bStats(this, 	23768);
         CommandAPI.onEnable();
         // Plugin startup logic
     }
