@@ -243,7 +243,7 @@ public abstract class InventoryBuilder implements InventoryHandler {
             default -> event.setCancelled(true);
         }
 
-        int slot = event.getSlot();
+        int slot = event.getRawSlot();
         InventoryButton button = this.buttonMap.get(slot);
         if (button != null && button.getEventConsumer() != null) {
             button.getEventConsumer().accept(event);
