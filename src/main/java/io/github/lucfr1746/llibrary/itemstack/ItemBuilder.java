@@ -8,6 +8,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 /**
  * A utility class for building and modifying {@link ItemStack} objects.
  * This class provides methods to easily create and customize {@link ItemStack} instances.
@@ -275,6 +277,43 @@ public class ItemBuilder {
     }
 
     /**
+     * Retrieves the custom model data of the ItemStack.
+     *
+     * @return the custom model data, or -1 if invalid or not set.
+     */
+    public int getCustomModelData() {
+        if (isInvalidItemStack()) return -1;
+        ItemMeta meta = getItemMeta();
+        return hasCustomModelData() ? meta.getCustomModelData() : -1;
+    }
+
+    /**
+     * Checks if the ItemStack has custom model data.
+     *
+     * @return {@code true} if custom model data is present, otherwise {@code false}.
+     */
+    public boolean hasCustomModelData() {
+        if (isInvalidItemStack()) return false;
+        ItemMeta meta = getItemMeta();
+        return meta.hasCustomModelData();
+    }
+
+    /**
+     * Sets the custom model data for the ItemStack.
+     *
+     * @param customModelData the custom model data value to set.
+     * @return the updated {@code ItemBuilder} instance.
+     * @throws IllegalStateException if the ItemStack is invalid.
+     */
+    public ItemBuilder setCustomModelData(int customModelData) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.setCustomModelData(customModelData);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
@@ -286,6 +325,20 @@ public class ItemBuilder {
             throw new IllegalArgumentException("The item's material is currently air!");
         }
         return false;
+    }
+
+    /**
+     * Retrieves the {@link ItemMeta} from the {@link ItemStack}.
+     *
+     * @return the {@link ItemMeta} instance.
+     * @throws IllegalStateException if the {@link ItemMeta} is null.
+     */
+    private @NotNull ItemMeta getItemMeta() {
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) {
+            throw new IllegalStateException("Failed to retrieve item meta.");
+        }
+        return meta;
     }
 
     /**
