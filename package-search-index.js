@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"io.github.lucfr1746.llibrary"},{"l":"io.github.lucfr1746.llibrary.inventory"},{"l":"io.github.lucfr1746.llibrary.itemstack"},{"l":"io.github.lucfr1746.llibrary.metrics"},{"l":"io.github.lucfr1746.llibrary.updatechecker"},{"l":"io.github.lucfr1746.llibrary.utils"}];updateSearchResults();
