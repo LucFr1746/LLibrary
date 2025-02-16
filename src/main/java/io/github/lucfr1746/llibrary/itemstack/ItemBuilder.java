@@ -244,7 +244,7 @@ public class ItemBuilder {
      * @param green the green component (0-255).
      * @param blue  the blue component (0-255).
      * @return the updated ItemBuilder instance.
-     * @throws IllegalArgumentException if any RGB value is out of range.
+     * @throws IllegalArgumentException if any, RGB value is out of range.
      */
     public ItemBuilder setColor(int red, int green, int blue) {
         if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255) {
@@ -309,6 +309,115 @@ public class ItemBuilder {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
         meta.setCustomModelData(customModelData);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the current damage value of the ItemStack.
+     *
+     * @return the amount of damage, or -1 if the ItemStack is invalid or not damageable.
+     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     */
+    public int getDamaged() {
+        if (isInvalidItemStack()) return -1;
+
+        ItemMeta meta = this.itemStack.getItemMeta();
+        if (!(meta instanceof Damageable)) {
+            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
+        }
+
+        return ((Damageable) meta).getDamage();
+    }
+
+    /**
+     * Gets the maximum durability of the ItemStack.
+     *
+     * @return the maximum durability value, or -1 if the ItemStack is invalid or not damageable.
+     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     */
+    public int getMaxDurability() {
+        if (isInvalidItemStack()) return -1;
+
+        ItemMeta meta = this.itemStack.getItemMeta();
+        if (!(meta instanceof Damageable)) {
+            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
+        }
+
+        return ((Damageable) meta).getMaxDamage();
+    }
+
+    /**
+     * Checks if the ItemStack has taken any damage.
+     *
+     * @return true if the ItemStack has been damaged, false otherwise.
+     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     */
+    public boolean hasDamaged() {
+        if (isInvalidItemStack()) return false;
+
+        ItemMeta meta = this.itemStack.getItemMeta();
+        if (!(meta instanceof Damageable)) {
+            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
+        }
+
+        return ((Damageable) meta).hasDamage();
+    }
+
+    /**
+     * Checks if the ItemStack has a maximum durability value set.
+     *
+     * @return true if the ItemStack has a maximum durability value, false otherwise.
+     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     */
+    public boolean hasMaxDurability() {
+        if (isInvalidItemStack()) return false;
+
+        ItemMeta meta = this.itemStack.getItemMeta();
+        if (!(meta instanceof Damageable)) {
+            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
+        }
+
+        return ((Damageable) meta).hasMaxDamage();
+    }
+
+    /**
+     * Sets the damage value of the ItemStack.
+     *
+     * @param amount the damage amount to set. Clamped between 0 and the max durability of the ItemStack.
+     * @return the modified ItemBuilder instance, or null if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     */
+    public ItemBuilder setDamaged(int amount) {
+        if (isInvalidItemStack()) return null;
+
+        ItemMeta meta = this.itemStack.getItemMeta();
+        if (!(meta instanceof Damageable damageableMeta)) {
+            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
+        }
+
+        amount = Math.max(0, Math.min(amount, this.itemStack.getType().getMaxDurability()));
+        damageableMeta.setDamage(amount);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Sets the maximum durability of the ItemStack.
+     *
+     * @param amount the maximum durability value to set.
+     * @return the modified ItemBuilder instance, or null if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     */
+    public ItemBuilder setMaxDurability(int amount) {
+        if (isInvalidItemStack()) return null;
+
+        ItemMeta meta = this.itemStack.getItemMeta();
+        if (!(meta instanceof Damageable damageableMeta)) {
+            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
+        }
+
+        damageableMeta.setMaxDamage(amount);
         this.itemStack.setItemMeta(meta);
         return this;
     }
