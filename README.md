@@ -21,17 +21,19 @@ For more detailed information, tutorials, and information about advanced feature
 ## Question
 
 <details>
-<summary>Why 1.21.1 - 1.21.x ?</summary>
+<summary>Why 1.21.2 - 1.21.x ?</summary>
 
-Due to Spigot 1.21.1-R0.1-SNAPSHOT having an API named "Menu Type", we decided to use that to create the **Inventory Builder API**. This makes the builder more flexible, and able to create multiple types of inventories.
+- Due to Spigot 1.21.1-R0.1-SNAPSHOT having an API named **"Menu Type"**, we decided to use that to create the **Inventory Builder API**. This makes the builder more flexible and able to create multiple types of inventories.
+
+- Due to Spigot 1.21.2-R0.1-SNAPSHOT having an API named **"Damage Resistant"**, ItemStack will be able to have damage-resistant flags. Ex: "DamageTypeTags.IS_FIRE" makes the item stack immune to fire.
 
 </details>
 
 <details>
 <summary>Has this added any features to the server ?</summary>
 
-This added some in-game quality of life such as:
-- A GUI that helps you modify item stack in-game, you can customize all of the GUI like text, and toggle the functions of the GUI or disable this GUI in the config file. Of course, the GUI has permission to open and per function permission if you want to customize more. Who knows!
+This added some in-game quality of life, such as:
+- A GUI that helps you modify item stack in-game, you can customize all of the GUI like text, and toggle the functions of the GUI or disable this GUI in the config file. Of course, the GUI has permission to open and per-function permission if you want to customize more. Who knows!
 
 </details>
 
