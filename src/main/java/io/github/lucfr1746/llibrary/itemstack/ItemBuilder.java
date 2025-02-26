@@ -3,11 +3,16 @@ package io.github.lucfr1746.llibrary.itemstack;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.Tag;
+import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.tag.DamageTypeTags;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -530,7 +535,39 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Checks if the item stack has damage resistance.
+     *
+     * @return true if the item has damage resistance, false otherwise
+     */
+    public boolean hasDamageResistant() {
+        return !isInvalidItemStack() && getItemMeta().hasDamageResistant();
+    }
 
+    /**
+     * Gets the damage resistance tag of the item stack.
+     *
+     * @return the damage resistance tag, or null if the item stack is invalid or has no resistance
+     */
+    @Nullable
+    public Tag<DamageType> getDamageResistant() {
+        return isInvalidItemStack() ? null : getItemMeta().getDamageResistant();
+    }
+
+    /**
+     * Sets the damage resistance tag for the item stack.
+     *
+     * @param tag the damage resistance tag to set, or null to remove damage resistance
+     * @return the current ItemBuilder instance
+     */
+    public ItemBuilder setDamageResistant(@Nullable Tag<DamageType> tag) {
+        if (isInvalidItemStack()) return this;
+        ItemMeta meta = getItemMeta();
+        meta.setDamageResistant(tag);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+    
     /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
