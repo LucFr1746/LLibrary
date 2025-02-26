@@ -3,11 +3,15 @@ package io.github.lucfr1746.llibrary.itemstack;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -421,6 +425,111 @@ public class ItemBuilder {
         this.itemStack.setItemMeta(meta);
         return this;
     }
+
+    /**
+     * Checks if the item stack contains the specified enchantment.
+     *
+     * @param enchantment the enchantment to check
+     * @return true if the item contains the enchantment, false otherwise
+     */
+    public boolean containsEnchantment(@NotNull Enchantment enchantment) {
+        return !isInvalidItemStack() && this.itemStack.containsEnchantment(enchantment);
+    }
+
+    /**
+     * Gets the level of a specific enchantment on the item stack.
+     *
+     * @param enchantment the enchantment to check
+     * @return the level of the enchantment, or 0 if not present or the item stack is invalid
+     */
+    public int getEnchantmentLevel(@NotNull Enchantment enchantment) {
+        return isInvalidItemStack() ? 0 : this.itemStack.getEnchantmentLevel(enchantment);
+    }
+
+    /**
+     * Retrieves all enchantments applied to the item stack.
+     *
+     * @return a map of enchantments and their levels, or an empty map if the item stack is invalid
+     */
+    @NotNull
+    public Map<Enchantment, Integer> getEnchantments() {
+        return isInvalidItemStack() ? Collections.emptyMap() : this.itemStack.getEnchantments();
+    }
+
+    /**
+     * Adds multiple enchantments to the item stack.
+     *
+     * @param enchantments    a map of enchantments and their levels
+     * @param byPassMaxLevel  if true, allows levels higher than the enchantment's max level
+     * @return the current ItemBuilder instance
+     */
+    public ItemBuilder addEnchantments(@NotNull Map<Enchantment, Integer> enchantments, boolean byPassMaxLevel) {
+        enchantments.forEach((enchantment, level) -> addEnchantment(enchantment, level, byPassMaxLevel));
+        return this;
+    }
+
+    /**
+     * Adds multiple enchantments to the item stack, respecting their max levels.
+     *
+     * @param enchantments a map of enchantments and their levels
+     * @return the current ItemBuilder instance
+     */
+    public ItemBuilder addEnchantments(@NotNull Map<Enchantment, Integer> enchantments) {
+        return addEnchantments(enchantments, false);
+    }
+
+    /**
+     * Adds an enchantment to the item stack.
+     *
+     * @param enchantment    the enchantment to add
+     * @param level          the level of the enchantment
+     * @param byPassMaxLevel if true, allows levels higher than the enchantment's max level
+     * @return the current ItemBuilder instance
+     */
+    public ItemBuilder addEnchantment(@NotNull Enchantment enchantment, int level, boolean byPassMaxLevel) {
+        if (isInvalidItemStack()) return this;
+        int lvl = byPassMaxLevel ? level : Math.min(enchantment.getMaxLevel(), level);
+        if (lvl == 0) {
+            removeEnchantment(enchantment);
+        } else {
+            this.itemStack.addUnsafeEnchantment(enchantment, lvl);
+        }
+        return this;
+    }
+
+    /**
+     * Adds an enchantment to the item stack, respecting the enchantment's max level.
+     *
+     * @param enchantment the enchantment to add
+     * @param level       the level of the enchantment
+     * @return the current ItemBuilder instance
+     */
+    public ItemBuilder addEnchantment(@NotNull Enchantment enchantment, int level) {
+        return addEnchantment(enchantment, level, false);
+    }
+
+    /**
+     * Removes a specific enchantment from the item stack.
+     *
+     * @param enchantment the enchantment to remove
+     * @return the level of the removed enchantment, or -1 if the item stack is invalid
+     */
+    public int removeEnchantment(@NotNull Enchantment enchantment) {
+        return isInvalidItemStack() ? -1 : this.itemStack.removeEnchantment(enchantment);
+    }
+
+    /**
+     * Removes all enchantments from the item stack.
+     *
+     * @return the current ItemBuilder instance
+     */
+    public ItemBuilder removeEnchantments() {
+        if (!isInvalidItemStack()) {
+            this.itemStack.removeEnchantments();
+        }
+        return this;
+    }
+
 
     /**
      * Validates the {@link ItemStack}.
