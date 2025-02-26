@@ -23,7 +23,7 @@ public record CompassBuilder(@NotNull ItemStack compass) {
      * @throws IllegalArgumentException If the ItemStack is air.
      * @throws IllegalStateException    If the ItemStack is not a compass.
      */
-    public CompassBuilder {
+    public CompassBuilder(ItemStack compass) {
         Objects.requireNonNull(compass, "Compass ItemStack cannot be null.");
         if (compass.getType() == Material.AIR) {
             throw new IllegalArgumentException("The ItemStack cannot be AIR!");
@@ -31,7 +31,7 @@ public record CompassBuilder(@NotNull ItemStack compass) {
         if (!(compass.getItemMeta() instanceof CompassMeta)) {
             throw new IllegalStateException("The ItemStack must have CompassMeta!");
         }
-        compass = compass.clone(); // Ensure immutability
+        this.compass = compass.clone(); // Ensure immutability
     }
 
     /**
