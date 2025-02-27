@@ -264,18 +264,30 @@ public class FoodBuilder {
     }
 
     /**
-     * A record representing a food effect with a probability.
+     * Represents a food effect that includes a potion effect and its probability.
      *
-     * @param potionEffect The potion effect applied when consuming the food.
-     * @param probability  The chance (0.0 to 1.0) for the effect to apply.
+     * @param potionEffect the potion effect to be applied when the food is consumed
+     * @param probability  the chance (from 0.0 to 1.0) that the effect will be applied
      */
     public record FoodPojo(PotionEffect potionEffect, float probability) {
+
+        /**
+         * Retrieves the potion effect.
+         *
+         * @return the potion effect associated with this food effect
+         */
         public PotionEffect getPotionEffect() {
             return potionEffect;
         }
 
+        /**
+         * Retrieves the probability of applying the potion effect.
+         *
+         * @return the probability value
+         */
         public float getProbability() {
             return probability;
         }
     }
+
 }
