@@ -583,6 +583,16 @@ public class ItemBuilder {
     }
 
     /**
+     * Retrieves a FoodBuilder instance for the current item stack.
+     *
+     * @return a new FoodBuilder if the item stack is valid; otherwise, returns null.
+     */
+    public FoodBuilder getFoodBuilder() {
+        if (isInvalidItemStack()) return null;
+        return new FoodBuilder(this.itemStack);
+    }
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
