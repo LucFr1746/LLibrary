@@ -567,7 +567,21 @@ public class ItemBuilder {
         this.itemStack.setItemMeta(meta);
         return this;
     }
-    
+
+    /**
+     * Retrieves a FireworkBuilder instance based on the current itemStack.
+     * <p>
+     * If the itemStack is invalid, this method returns {@code null}.
+     * Otherwise, it constructs and returns a new FireworkBuilder.
+     * </p>
+     *
+     * @return a new {@link FireworkBuilder} if the itemStack is valid; {@code null} if invalid.
+     */
+    public FireworkBuilder getFireworkBuilder() {
+        if (isInvalidItemStack()) return null;
+        return new FireworkBuilder(this.itemStack);
+    }
+
     /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
