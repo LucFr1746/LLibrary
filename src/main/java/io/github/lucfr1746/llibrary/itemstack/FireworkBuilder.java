@@ -26,7 +26,7 @@ public record FireworkBuilder(@NotNull ItemStack firework) {
      * @throws IllegalArgumentException if the firework is AIR.
      * @throws IllegalStateException if the firework does not have FireworkMeta.
      */
-    public FireworkBuilder {
+    public FireworkBuilder(@NotNull ItemStack firework) {
         Objects.requireNonNull(firework, "Firework ItemStack cannot be null.");
         if (firework.getType() == Material.AIR) {
             throw new IllegalArgumentException("The ItemStack cannot be AIR!");
@@ -34,7 +34,7 @@ public record FireworkBuilder(@NotNull ItemStack firework) {
         if (!(firework.getItemMeta() instanceof FireworkMeta)) {
             throw new IllegalStateException("The ItemStack must have FireworkMeta!");
         }
-        firework = firework.clone();
+        this.firework = firework.clone();
     }
 
     /**
