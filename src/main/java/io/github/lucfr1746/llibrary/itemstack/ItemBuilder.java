@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.github.lucfr1746.llibrary.utils.Util;
 import io.github.lucfr1746.llibrary.utils.UtilsString;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -1136,7 +1137,36 @@ public class ItemBuilder {
         return getItemMeta().getRarity();
     }
 
-    
+    /**
+     * Renames the ItemStack by setting its display name.
+     *
+     * @param name The new display name for the ItemStack.
+     *             - If {@code null} or "clear" (case-insensitive), the display name is removed (reset to default).
+     *             - If empty or blank, the display name is set to white ("&f").
+     *             - Otherwise, the name is formatted using {@code Util.formatText()} and color codes are translated.
+     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemBuilder rename(@Nullable String name) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+
+        if (name == null || name.equalsIgnoreCase("clear")) {
+            meta.setDisplayName(null);
+            this.itemStack.setItemMeta(meta);
+            return this;
+        }
+
+        if (name.isBlank() || name.isEmpty()) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&f"));
+            this.itemStack.setItemMeta(meta);
+            return this;
+        }
+
+        name = Util.formatText(name);
+        meta.setDisplayName(name);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
 
     /**
      * Validates the {@link ItemStack}.
