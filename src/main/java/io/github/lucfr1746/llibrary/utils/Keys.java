@@ -55,7 +55,7 @@ public class Keys {
         public static final NamespacedKey CONSUMABLE = craftKey("consumable");
         /** Key representing the item to remain after consumption. */
         public static final NamespacedKey USE_REMAINDER = craftKey("use_remainder");
-        /** Alias for consumable component to support cross-version compatibility. */
+        /** Alias for a consumable component to support cross-version compatibility. */
         public static final NamespacedKey CROSS_VERSION_CONSUMABLE = CONSUMABLE;
     }
 

@@ -3,6 +3,7 @@ package io.github.lucfr1746.llibrary.itemstack;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.github.lucfr1746.llibrary.utils.Util;
+import io.github.lucfr1746.llibrary.utils.UtilsString;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -824,6 +825,177 @@ public class ItemBuilder {
      */
     public ItemBuilder setItemModel(@NotNull String name) {
         return setItemModel(new NamespacedKey(NamespacedKey.MINECRAFT, name));
+    }
+
+    /**
+     * Replaces all occurrences of a string in the item lore.
+     *
+     * @param from the string to be replaced
+     * @param to the replacement string
+     * @return this ItemBuilder instance, or null if the item stack is invalid
+     */
+    public ItemBuilder loreReplace(String from, String to) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
+
+        from = UtilsString.fix(from, null, true);
+        to = UtilsString.fix(to, null, true);
+        String finalFrom = from;
+        String finalTo = to;
+        lore.replaceAll(line -> line.replace(finalFrom, finalTo));
+
+        meta.setLore(lore);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Copies the lore from another ItemStack.
+     *
+     * @param target the ItemStack to copy lore from
+     * @return this ItemBuilder instance, or null if the item stack or target is invalid
+     */
+    public ItemBuilder loreCopyFrom(ItemStack target) {
+        if (isInvalidItemStack() || target == null) return null;
+        ItemMeta targetMeta = target.getItemMeta();
+        if (targetMeta == null || !targetMeta.hasLore() || targetMeta.getLore() == null) return null;
+
+        ItemMeta meta = getItemMeta();
+        meta.setLore(new ArrayList<>(targetMeta.getLore()));
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Copies lore from a book's pages.
+     *
+     * @param book the book ItemStack to copy pages from
+     * @return this ItemBuilder instance, or null if the item stack or book is invalid
+     */
+    public ItemBuilder loreCopyFromBook(ItemStack book) {
+        if (isInvalidItemStack() || !(book.getItemMeta() instanceof BookMeta bookMeta)) {
+            return null;
+        }
+
+        List<String> lore = bookMeta.getPages().stream()
+                .filter(Objects::nonNull)
+                .flatMap(page -> Arrays.stream(page.split("\n")))
+                .map(Util::formatText)
+                .toList();
+
+        ItemMeta meta = getItemMeta();
+        meta.setLore(lore);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Adds new lines to the lore.
+     *
+     * @param texts the lines to add
+     * @return this ItemBuilder instance, or null if the item stack is invalid or texts are null/empty
+     */
+    public ItemBuilder loreAdd(String... texts) {
+        if (isInvalidItemStack() || texts == null || texts.length == 0) return null;
+        ItemMeta meta = getItemMeta();
+        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
+
+        Arrays.stream(texts).map(Util::formatText).forEach(lore::add);
+        meta.setLore(lore);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Inserts a line at a specific index in the lore.
+     *
+     * @param line the index to insert at
+     * @param text the line to insert
+     * @return this ItemBuilder instance
+     * @throws IllegalArgumentException if line is negative
+     */
+    public ItemBuilder loreInsert(int line, String text) {
+        if (isInvalidItemStack() || line < 0) throw new IllegalArgumentException("Invalid line number");
+        ItemMeta meta = getItemMeta();
+        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
+
+        while (lore.size() <= line) lore.add("");
+        lore.add(line, Util.formatText(text));
+
+        meta.setLore(lore);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Sets a specific line in the lore.
+     *
+     * @param line the index to set
+     * @param text the new line content
+     * @return this ItemBuilder instance
+     * @throws IllegalArgumentException if line is negative
+     */
+    public ItemBuilder loreSet(int line, String text) {
+        if (isInvalidItemStack() || line < 0) throw new IllegalArgumentException("Invalid line number");
+        ItemMeta meta = getItemMeta();
+        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
+
+        while (lore.size() <= line) lore.add("");
+        lore.set(line, Util.formatText(text));
+
+        meta.setLore(lore);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Sets multiple lines of lore.
+     *
+     * @param lores the list of lines to set as lore
+     * @return this ItemBuilder instance
+     */
+    public ItemBuilder loresSet(List<String> lores) {
+        if (isInvalidItemStack()) return null;
+        if (lores == null) return this;
+        ItemMeta meta = getItemMeta();
+        List<String> formattedLores = lores.stream().map(Util::formatText).toList();
+
+        meta.setLore(formattedLores);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Removes a specific line from the lore.
+     *
+     * @param line the index of the line to remove (1-based index)
+     * @return this ItemBuilder instance
+     * @throws IllegalArgumentException if line is less than or equal to 0
+     */
+    public ItemBuilder loreRemove(int line) {
+        if (isInvalidItemStack() || line <= 0) throw new IllegalArgumentException("Invalid line number");
+        ItemMeta meta = getItemMeta();
+        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
+
+        if (line - 1 < lore.size()) lore.remove(line - 1);
+
+        meta.setLore(lore.isEmpty() ? null : lore);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Clears all lore.
+     *
+     * @return this ItemBuilder instance
+     */
+    public ItemBuilder loreReset() {
+        if (isInvalidItemStack()) return this;
+        ItemMeta meta = getItemMeta();
+        meta.setLore(null);
+        itemStack.setItemMeta(meta);
+        return this;
     }
 
     /**

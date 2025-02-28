@@ -1,5 +1,7 @@
 package io.github.lucfr1746.llibrary.utils;
 
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 
 public class Util {
@@ -13,6 +15,19 @@ public class Util {
     private static final boolean hasPaper = initPaper();
     private static final boolean hasFolia = initFolia();
     private static final boolean hasPurpur = initPurpur();
+
+    public static String formatText(String text) {
+        text = MiniMessage.miniMessage().deserialize(text).toString();
+        text = ChatColor.translateAlternateColorCodes('&', text);
+        int from = 0;
+        while (text.indexOf("&#", from) >= 0) {
+            from = text.indexOf("&#", from) + 1;
+            text = text.replace(text.substring(from - 1, from + 7),
+                    net.md_5.bungee.api.ChatColor.of(text.substring(from, from + 7)).toString());
+        }
+        return text;
+
+    }
 
     /**
      * Inclusive
