@@ -1184,6 +1184,32 @@ public class ItemBuilder {
     }
 
     /**
+     * Sets the repair cost of the ItemStack.
+     *
+     * @param cost The repair cost to set.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemBuilder setRepairCost(int cost) {
+        if (isInvalidItemStack()) return null;
+        Repairable meta = (Repairable) getItemMeta();
+        meta.setRepairCost(cost);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the repair cost of the ItemStack.
+     *
+     * @return The repair cost, or {@code 0} if the ItemStack is invalid.
+     */
+    public int getRepairCost() {
+        if (isInvalidItemStack()) return 0;
+        return ((Repairable) getItemMeta()).getRepairCost();
+    }
+
+    
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
