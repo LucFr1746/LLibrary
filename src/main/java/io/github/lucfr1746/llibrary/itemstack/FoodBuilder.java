@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.components.consumable.ConsumableComponent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -40,7 +41,7 @@ public class FoodBuilder {
      * @param sound The sound to play.
      * @return The current FoodBuilder instance.
      */
-    public FoodBuilder foodSound(Sound sound) {
+    public FoodBuilder setFoodSound(Sound sound) {
         ParsedItem parsed = new ParsedItem(this.itemstack);
         parsed.set(((Keyed) sound).getKey().toString(), Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "sound");
         this.itemstack = parsed.toItemStack();
@@ -53,7 +54,7 @@ public class FoodBuilder {
      * @param animation The animation type.
      * @return The current FoodBuilder instance.
      */
-    public FoodBuilder foodAnimation(ConsumableComponent.Animation animation) {
+    public FoodBuilder setFoodAnimation(ConsumableComponent.Animation animation) {
         ParsedItem parsed = new ParsedItem(this.itemstack);
         parsed.set(animation.toString(), Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "animation");
         this.itemstack = parsed.toItemStack();
@@ -66,7 +67,7 @@ public class FoodBuilder {
      * @param value True to show particles, false otherwise.
      * @return The current FoodBuilder instance.
      */
-    public FoodBuilder foodConsumeParticles(boolean value) {
+    public FoodBuilder setFoodConsumeParticles(boolean value) {
         ParsedItem parsed = new ParsedItem(this.itemstack);
         parsed.set(value, Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "has_consume_particles");
         this.itemstack = parsed.toItemStack();
@@ -95,7 +96,7 @@ public class FoodBuilder {
      * @param value True to allow always eating, false otherwise.
      * @return The current FoodBuilder instance.
      */
-    public FoodBuilder foodCanAlwaysEat(boolean value) {
+    public FoodBuilder setFoodCanAlwaysEat(boolean value) {
         ParsedItem parsed = new ParsedItem(this.itemstack);
         parsed.loadEmptyMap(Keys.Component.FOOD.toString());
         parsed.set(value, Keys.Component.FOOD.toString(), "can_always_eat");
@@ -202,7 +203,7 @@ public class FoodBuilder {
     }
 
     /**
-     * Checks if the food has consume particles enabled.
+     * Checks if the food has consumed particles enabled.
      *
      * @param item The ItemStack to check.
      * @return True if consume particles are enabled, false otherwise.
@@ -261,6 +262,157 @@ public class FoodBuilder {
      */
     public ItemStack getUseRemainder() {
         return Objects.requireNonNull(this.itemstack.getItemMeta()).getUseRemainder();
+    }
+
+    /**
+     * Checks if the food item can always be eaten, even when the player is not hungry.
+     *
+     * @return true if the item can always be eaten, false otherwise.
+     */
+    public boolean canAlwaysEat() {
+        ParsedItem parsed = new ParsedItem(this.itemstack);
+        return parsed.readBoolean(false, Keys.Component.FOOD.toString(), "can_always_eat");
+    }
+
+    /**
+     * Sets the time it takes to eat the food in seconds.
+     *
+     * @param value The time in ticks (20 ticks = 1 second).
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder foodEatTicks(float value) {
+        value = Math.max(0, value);
+        ParsedItem parsedItem = new ParsedItem(this.itemstack);
+        parsedItem.loadEmptyMap(Keys.Component.CROSS_VERSION_CONSUMABLE.toString());
+        parsedItem.set(value / 20, Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "consume_seconds");
+        this.itemstack = parsedItem.toItemStack();
+        return this;
+    }
+
+    /**
+     * Gets the time it takes to eat the food in seconds.
+     *
+     * @param stack The ItemStack to check.
+     * @return The time in seconds.
+     */
+    public float getEatSeconds(ItemStack stack) {
+        ParsedItem parsed = new ParsedItem(stack);
+        return parsed.readFloat(1.6F, Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "consume_seconds");
+    }
+
+    /**
+     * Sets the nutrition value (hunger points) of the food.
+     *
+     * @param value The nutrition value.
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder setFoodNutrition(int value) {
+        ParsedItem parsedItem = new ParsedItem(this.itemstack);
+        parsedItem.loadEmptyMap(Keys.Component.CROSS_VERSION_CONSUMABLE.toString());
+        parsedItem.set(value, Keys.Component.FOOD.toString(), "nutrition");
+        parsedItem.load(0F, Keys.Component.FOOD.toString(), "saturation");
+        this.itemstack = parsedItem.toItemStack();
+        return this;
+    }
+
+    /**
+     * Gets the nutrition value of the food.
+     *
+     * @return The nutrition value, or 0 if not set.
+     */
+    public int getNutrition() {
+        ParsedItem parsedItem = new ParsedItem(this.itemstack);
+        Map<String, Object> food = ParsedItem.getMap(parsedItem.getMap(), "food");
+        if (food == null || !food.containsKey("nutrition"))
+            return 0;
+        return ParsedItem.readInt(food, "nutrition", 0);
+    }
+
+    /**
+     * Sets the saturation value of the food.
+     *
+     * @param value The saturation value.
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder setFoodSaturation(float value) {
+        ParsedItem parsedItem = new ParsedItem(this.itemstack);
+        parsedItem.loadEmptyMap(Keys.Component.CROSS_VERSION_CONSUMABLE.toString());
+        parsedItem.set(0, Keys.Component.FOOD.toString(), "nutrition");
+        parsedItem.load(value, Keys.Component.FOOD.toString(), "saturation");
+        this.itemstack = parsedItem.toItemStack();
+        return this;
+    }
+
+    /**
+     * Gets the saturation value of the food.
+     *
+     * @return The saturation value, or 0 if not set.
+     */
+    public float getSaturation() {
+        ParsedItem parsedItem = new ParsedItem(this.itemstack);
+        Map<String, Object> food = ParsedItem.getMap(parsedItem.getMap(), "food");
+        if (food == null || !food.containsKey("saturation"))
+            return 0;
+        return ParsedItem.readFloat(food, "saturation", 0f);
+    }
+
+    /**
+     * Adds a food effect (PotionEffect) with a given chance to apply.
+     *
+     * @param effectType        The type of potion effect.
+     * @param durationInSecond  The duration in ticks.
+     * @param level             The level of the effect.
+     * @param enableParticles   Whether particles are shown.
+     * @param ambient           Whether the effect is ambient.
+     * @param icon              Whether the effect icon is shown.
+     * @param chanceInPercent   The chance for the effect to apply.
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder addFoodEffect(PotionEffectType effectType, int durationInSecond, int level, boolean enableParticles, boolean ambient, boolean icon, float chanceInPercent) {
+        if ((level < 0) || (level > 127))
+            throw new IllegalArgumentException();
+        durationInSecond = durationInSecond >= 0 ? durationInSecond * 20 : Integer.MAX_VALUE;
+        chanceInPercent = Math.max(0, Math.min(chanceInPercent, 100)) / 100;
+
+        List<FoodPojo> values = getFoodEffects();
+        values.add(new FoodPojo(new PotionEffect(effectType, durationInSecond, level, ambient, enableParticles, icon), chanceInPercent));
+        return setFoodEffects(values);
+    }
+
+    /**
+     * Removes a specific food effect.
+     *
+     * @param effectType The type of potion effect to remove.
+     * @param level      The level of the effect, or null to remove any level.
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder removeFoodEffect(PotionEffectType effectType, @Nullable Integer level) {
+        List<FoodPojo> values = getFoodEffects();
+        values.removeIf(effect -> effect.getPotionEffect().getType().equals(effectType) &&
+                (level == null || effect.getPotionEffect().getAmplifier() == level));
+        return setFoodEffects(values);
+    }
+
+    /**
+     * Clears all food effects from the item.
+     *
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder foodClearEffects() {
+        return setFoodEffects(null);
+    }
+
+    /**
+     * Sets the item that remains after the food is consumed.
+     *
+     * @param target The resulting ItemStack.
+     * @param amount The amount of the resulting item.
+     * @return The current FoodBuilder instance for chaining.
+     */
+    public FoodBuilder convertFoodTo(@NotNull ItemStack target, int amount) {
+        if (target.getType().isAir()) target = null;
+        if (target != null) target.setAmount(amount);
+        return setUseRemainder(target);
     }
 
     /**
