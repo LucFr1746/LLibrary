@@ -14,6 +14,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -999,6 +1001,116 @@ public class ItemBuilder {
     }
 
     /**
+     * Sets the maximum stack size for this ItemStack.
+     *
+     * @param amount The maximum stack size, clamped between 0 and 99.
+     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemBuilder setMaxStackSize(int amount) {
+        if (isInvalidItemStack()) return null;
+        amount = Math.max(0, Math.min(amount, 99));
+        ItemMeta meta = getItemMeta();
+        meta.setMaxStackSize(amount);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the maximum stack size of this ItemStack.
+     *
+     * @return The maximum stack size, or {@code 0} if the ItemStack is invalid.
+     */
+    public int getMaxStackSize() {
+        if (isInvalidItemStack()) return 0;
+        return getItemMeta().getMaxStackSize();
+    }
+
+    /**
+     * Removes a specific potion effect from the ItemStack.
+     *
+     * @param effect The potion effect type to remove.
+     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
+     */
+    public ItemBuilder removePotionEffect(@NotNull PotionEffectType effect) {
+        if (isInvalidItemStack() || !hasPotionEffectMeta()) return null;
+
+        ItemMeta meta = getItemMeta();
+        if (meta instanceof PotionMeta potionMeta) {
+            potionMeta.removeCustomEffect(effect);
+        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
+            stewMeta.removeCustomEffect(effect);
+        }
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Adds a custom potion effect to the ItemStack.
+     *
+     * @param effect The potion effect type to add.
+     * @param durationInSeconds The duration of the effect in seconds.
+     * @param level The amplifier level of the effect (0-127).
+     * @param particles Whether the effect should show particles.
+     * @param ambient Whether the effect is considered ambient.
+     * @param icon Whether the effect should show an icon.
+     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
+     * @throws IllegalArgumentException if the level is not between 0 and 127.
+     */
+    public ItemBuilder addPotionEffect(@NotNull PotionEffectType effect, int durationInSeconds, int level, boolean particles, boolean ambient, boolean icon) {
+        if (isInvalidItemStack() || !hasPotionEffectMeta()) return null;
+
+        if (level < 0 || level > 127)
+            throw new IllegalArgumentException("Potion effect level must be between 0 and 127.");
+
+        int durationInTicks = durationInSeconds >= 0 ? durationInSeconds * 20 : Integer.MAX_VALUE;
+        PotionEffect potionEffect = new PotionEffect(effect, durationInTicks, level, ambient, particles, icon);
+
+        ItemMeta meta = getItemMeta();
+        if (meta instanceof PotionMeta potionMeta) {
+            potionMeta.addCustomEffect(potionEffect, true);
+        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
+            stewMeta.addCustomEffect(potionEffect, true);
+        }
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Clears all custom potion effects from the ItemStack.
+     *
+     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
+     */
+    public ItemBuilder clearPotionEffects() {
+        if (isInvalidItemStack() || !hasPotionEffectMeta()) return null;
+
+        ItemMeta meta = getItemMeta();
+        if (meta instanceof PotionMeta potionMeta) {
+            potionMeta.clearCustomEffects();
+        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
+            stewMeta.clearCustomEffects();
+        }
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Retrieves the list of custom potion effects on the ItemStack.
+     *
+     * @return A list of PotionEffects, or an empty list if the ItemStack is invalid or does not have potion effect metadata.
+     */
+    public List<PotionEffect> getPotionEffects() {
+        if (isInvalidItemStack() || !hasPotionEffectMeta()) return Collections.emptyList();
+
+        ItemMeta meta = getItemMeta();
+        if (meta instanceof PotionMeta potionMeta) {
+            return potionMeta.getCustomEffects();
+        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
+            return stewMeta.getCustomEffects();
+        }
+        return Collections.emptyList();
+    }
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
@@ -1019,7 +1131,7 @@ public class ItemBuilder {
      * @throws IllegalStateException if the {@link ItemMeta} is null.
      */
     private @NotNull ItemMeta getItemMeta() {
-        ItemMeta meta = itemStack.getItemMeta();
+        ItemMeta meta = this.itemStack.getItemMeta();
         if (meta == null) {
             throw new IllegalStateException("Failed to retrieve item meta.");
         }
@@ -1032,7 +1144,18 @@ public class ItemBuilder {
      * @return true if the ItemStack has color metadata, false otherwise.
      */
     private boolean hasColorMeta() {
-        ItemMeta meta = this.itemStack.getItemMeta();
+        ItemMeta meta = getItemMeta();
         return meta instanceof PotionMeta || meta instanceof LeatherArmorMeta || meta instanceof FireworkEffectMeta;
+    }
+
+    /**
+     * Checks if the ItemStack has potion effect-related metadata.
+     *
+     * @return {@code true} if the ItemMeta is an instance of PotionMeta or SuspiciousStewMeta,
+     *         {@code false} otherwise.
+     */
+    private boolean hasPotionEffectMeta() {
+        ItemMeta meta = getItemMeta();
+        return meta instanceof PotionMeta || meta instanceof SuspiciousStewMeta;
     }
 }
