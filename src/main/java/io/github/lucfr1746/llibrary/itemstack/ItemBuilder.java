@@ -1367,6 +1367,54 @@ public class ItemBuilder {
     }
 
     /**
+     * Sets the type of the ItemStack.
+     *
+     * @param type The material type to set. Must not be null or {@link Material#AIR}.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalArgumentException if the provided material type is {@link Material#AIR}.
+     */
+    public ItemBuilder setType(Material type) {
+        if (isInvalidItemStack()) return null;
+        if (type == Material.AIR)
+            throw new IllegalArgumentException("The ItemStack can't be air!");
+        this.itemStack.setType(type);
+        return this;
+    }
+
+    /**
+     * Gets the type of the ItemStack.
+     *
+     * @return The {@link Material} type of the ItemStack.
+     */
+    public Material getType() {
+        return this.itemStack.getType();
+    }
+
+    /**
+     * Sets whether the ItemStack is unbreakable.
+     *
+     * @param value {@code true} to make the ItemStack unbreakable, {@code false} to allow it to break.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemBuilder setUnbreakable(boolean value) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.setUnbreakable(value);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Checks if the ItemStack is unbreakable.
+     *
+     * @return {@code true} if the ItemStack is unbreakable, {@code false} if it can break or if the ItemStack is invalid.
+     */
+    public boolean isUnbreakable() {
+        if (isInvalidItemStack()) return false;
+        return getItemMeta().isUnbreakable();
+    }
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
