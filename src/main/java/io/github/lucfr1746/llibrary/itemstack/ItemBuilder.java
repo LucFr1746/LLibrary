@@ -1,9 +1,15 @@
 package io.github.lucfr1746.llibrary.itemstack;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import io.github.lucfr1746.llibrary.utils.Util;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
@@ -12,10 +18,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A utility class for building and modifying {@link ItemStack} objects.
@@ -626,7 +629,19 @@ public class ItemBuilder {
     public ItemBuilder setFlags(@NotNull ItemFlag... flags) {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
+        for (ItemFlag flag : List.of(flags)) {
+            handleFlagChange(true, flag, this.itemStack, meta);
+        }
         meta.addItemFlags(flags);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    public ItemBuilder setAllFlags() {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        handleFlagsChange(this.itemStack, meta);
+        meta.addItemFlags(ItemFlag.values());
         this.itemStack.setItemMeta(meta);
         return this;
     }
@@ -634,6 +649,9 @@ public class ItemBuilder {
     public ItemBuilder removeFlags(@NotNull ItemFlag... flags) {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
+        for (ItemFlag flag : List.of(flags)) {
+            handleFlagChange(false, flag, this.itemStack, meta);
+        }
         meta.removeItemFlags(flags);
         this.itemStack.setItemMeta(meta);
         return this;
@@ -642,6 +660,52 @@ public class ItemBuilder {
     public boolean hasFlag(@NotNull ItemFlag flag) {
         if (isInvalidItemStack()) return false;
         return getItemMeta().hasItemFlag(flag);
+    }
+
+    private void handleFlagChange(boolean put, ItemFlag flag, ItemStack item, ItemMeta meta) {
+        if (!Util.hasPaperAPI()) {
+            return;
+        }
+        if (flag != ItemFlag.HIDE_ATTRIBUTES) {
+            return;
+        }
+        if (put) {
+            if (meta.getAttributeModifiers() != null) {
+                return;
+            }
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                item.getType().getDefaultAttributeModifiers(slot).forEach(meta::addAttributeModifier);
+            }
+            return;
+        }
+
+        Multimap<Attribute, AttributeModifier> mods = meta.getAttributeModifiers();
+        if (mods == null) {
+            return;
+        }
+
+        HashMultimap<Attribute, AttributeModifier> mods2 = HashMultimap.create();
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            mods2.putAll(item.getType().getDefaultAttributeModifiers(slot));
+        }
+
+        if (mods.equals(mods2)) {
+            for (EquipmentSlot slot : EquipmentSlot.values()) {
+                meta.removeAttributeModifier(slot);
+            }
+        }
+    }
+
+    private void handleFlagsChange(ItemStack item, ItemMeta meta) {
+        if (!Util.hasPaperAPI()) {
+            return;
+        }
+        if (meta.getAttributeModifiers() != null) {
+            return;
+        }
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            item.getType().getDefaultAttributeModifiers(slot).forEach(meta::addAttributeModifier);
+        }
     }
 
     /**

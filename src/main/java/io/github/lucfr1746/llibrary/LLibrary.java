@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.github.lucfr1746.llibrary.metrics.bStats;
 import io.github.lucfr1746.llibrary.utils.LoggerAPI;
+import io.github.lucfr1746.llibrary.utils.Util;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -31,10 +32,8 @@ public final class LLibrary extends JavaPlugin {
         new bStats(this, 	23768);
         CommandAPI.onEnable();
         // Plugin startup logic
-        try {
-            Class.forName("io.papermc.paper.plugin.manager.PaperPluginManagerImpl");
-            new LoggerAPI(this).success("PaperAPI detected, enchantment API now enabled!");
-        } catch (Throwable ignored) {
+        if (Util.hasPaperAPI()) {
+            new LoggerAPI(this).success("PaperAPI detected, some features are now enabled!");
         }
     }
 
