@@ -4,6 +4,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.github.lucfr1746.llibrary.utils.Util;
 import io.github.lucfr1746.llibrary.utils.UtilsString;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -1166,6 +1169,18 @@ public class ItemBuilder {
         meta.setDisplayName(name);
         this.itemStack.setItemMeta(meta);
         return this;
+    }
+
+    /**
+     * Gets the display name of the ItemStack in MiniMessage format.
+     *
+     * @return The display name converted to MiniMessage format, or {@code null} if the ItemStack is invalid.
+     */
+    public String getDisplayName() {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        Component component = LegacyComponentSerializer.legacySection().deserialize(meta.getDisplayName());
+        return MiniMessage.miniMessage().serialize(component);
     }
 
     /**
