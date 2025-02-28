@@ -13,8 +13,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
-import org.bukkit.tag.DamageTypeTags;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -593,7 +591,13 @@ public class ItemBuilder {
         return new FoodBuilder(this.itemStack);
     }
 
-    public ItemBuilder setEnchantmentGliderOverride(boolean value){
+    /**
+     * Sets whether the item should have an enchantment glint override.
+     *
+     * @param value true to enable enchantment glint override, false to disable
+     * @return the current ItemBuilder instance or null if the item stack is invalid
+     */
+    public ItemBuilder setEnchantmentGliderOverride(boolean value) {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
         meta.setEnchantmentGlintOverride(value);
@@ -601,11 +605,23 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Checks if the item has an enchantment glint override.
+     *
+     * @return true, if the item has an enchantment glint override, false otherwise
+     */
     public boolean hasEnchantmentGliderOverride() {
         if (isInvalidItemStack()) return false;
         return getItemMeta().getEnchantmentGlintOverride();
     }
 
+    /**
+     * Sets the music instrument type for the item.
+     *
+     * @param type the MusicInstrument to set
+     * @return the current ItemBuilder instance or null if the item stack is invalid
+     * @throws IllegalStateException if the item does not have MusicInstrumentMeta
+     */
     public ItemBuilder setMusicInstrument(MusicInstrument type) {
         if (isInvalidItemStack()) return null;
         if (getItemMeta() instanceof MusicInstrumentMeta meta) {
@@ -617,6 +633,12 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Gets the music instrument type of the item.
+     *
+     * @return the MusicInstrument of the item or null if the item stack is invalid
+     * @throws IllegalStateException if the item does not have MusicInstrumentMeta
+     */
     public MusicInstrument getMusicInstrument() {
         if (isInvalidItemStack()) return null;
         if (getItemMeta() instanceof MusicInstrumentMeta meta) {
@@ -626,6 +648,12 @@ public class ItemBuilder {
         }
     }
 
+    /**
+     * Adds item flags to the item.
+     *
+     * @param flags the item flags to add
+     * @return the current ItemBuilder instance or null if the item stack is invalid
+     */
     public ItemBuilder setFlags(@NotNull ItemFlag... flags) {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
@@ -637,6 +665,11 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Adds all possible item flags to the item.
+     *
+     * @return the current ItemBuilder instance or null if the item stack is invalid
+     */
     public ItemBuilder setAllFlags() {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
@@ -646,6 +679,12 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Removes item flags from the item.
+     *
+     * @param flags the item flags to remove
+     * @return the current ItemBuilder instance or null if the item stack is invalid
+     */
     public ItemBuilder removeFlags(@NotNull ItemFlag... flags) {
         if (isInvalidItemStack()) return null;
         ItemMeta meta = getItemMeta();
@@ -657,11 +696,25 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Checks if the item has a specific item flag.
+     *
+     * @param flag the item flag to check
+     * @return true if the item has the flag, false otherwise
+     */
     public boolean hasFlag(@NotNull ItemFlag flag) {
         if (isInvalidItemStack()) return false;
         return getItemMeta().hasItemFlag(flag);
     }
 
+    /**
+     * Handles changes to item flags, specifically the HIDE_ATTRIBUTES flag.
+     *
+     * @param put  true to add attributes, false to remove them.
+     * @param flag the ItemFlag being modified.
+     * @param item the ItemStack whose attributes are being changed.
+     * @param meta the ItemMeta of the item.
+     */
     private void handleFlagChange(boolean put, ItemFlag flag, ItemStack item, ItemMeta meta) {
         if (!Util.hasPaperAPI()) {
             return;
@@ -696,6 +749,12 @@ public class ItemBuilder {
         }
     }
 
+    /**
+     * Ensures that default attribute modifiers are added to the item if none exist.
+     *
+     * @param item the ItemStack whose attributes are being updated.
+     * @param meta the ItemMeta of the item.
+     */
     private void handleFlagsChange(ItemStack item, ItemMeta meta) {
         if (!Util.hasPaperAPI()) {
             return;
@@ -706,6 +765,30 @@ public class ItemBuilder {
         for (EquipmentSlot slot : EquipmentSlot.values()) {
             item.getType().getDefaultAttributeModifiers(slot).forEach(meta::addAttributeModifier);
         }
+    }
+
+    /**
+     * Toggles the hiding of item tooltips.
+     *
+     * @param value true to hide tooltips, false to show them
+     * @return the current ItemBuilder instance or null if the item stack is invalid
+     */
+    public ItemBuilder hideToolTip(boolean value) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.setHideTooltip(value);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Checks if item tooltips are hidden.
+     *
+     * @return true if tooltips are hidden, false otherwise
+     */
+    public boolean isHideToolTip() {
+        if (isInvalidItemStack()) return false;
+        return getItemMeta().isHideTooltip();
     }
 
     /**
