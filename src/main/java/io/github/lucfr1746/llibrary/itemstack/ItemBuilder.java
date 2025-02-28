@@ -14,12 +14,14 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
-import org.bukkit.entity.Item;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -921,7 +923,7 @@ public class ItemBuilder {
      * @param line the index to insert at
      * @param text the line to insert
      * @return this ItemBuilder instance
-     * @throws IllegalArgumentException if line is negative
+     * @throws IllegalArgumentException if the line is negative
      */
     public ItemBuilder loreInsert(int line, String text) {
         if (isInvalidItemStack() || line < 0) throw new IllegalArgumentException("Invalid line number");
@@ -942,7 +944,7 @@ public class ItemBuilder {
      * @param line the index to set
      * @param text the new line content
      * @return this ItemBuilder instance
-     * @throws IllegalArgumentException if line is negative
+     * @throws IllegalArgumentException if the line is negative
      */
     public ItemBuilder loreSet(int line, String text) {
         if (isInvalidItemStack() || line < 0) throw new IllegalArgumentException("Invalid line number");
@@ -1034,7 +1036,7 @@ public class ItemBuilder {
     /**
      * Removes a specific potion effect from the ItemStack.
      *
-     * @param effect The potion effect type to remove.
+     * @param effect The potion effect types to remove.
      * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
      */
     public ItemBuilder removePotionEffect(@NotNull PotionEffectType effect) {
@@ -1211,7 +1213,7 @@ public class ItemBuilder {
      * Sets the tooltip style of the ItemStack.
      *
      * @param value The tooltip style to set. Use "clear" to reset the tooltip style to default.
-     *              Format can be either "namespace:key" or simply "key" (which defaults to the "minecraft" namespace).
+     *              Format can be either "namespace:key" or "key" (which defaults to the "minecraft" namespace).
      * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
      */
     public ItemBuilder setToolTipStyle(String value) {
@@ -1245,7 +1247,37 @@ public class ItemBuilder {
         if (isInvalidItemStack()) return null;
         return getItemMeta().getTooltipStyle();
     }
-    
+
+    /**
+     * Sets the armor trim of the ItemStack using the specified trim material and pattern.
+     *
+     * @param trimMaterial The material to use for the armor trim. Must not be null.
+     * @param trimPattern The pattern to use for the armor trim. Must not be null.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link ArmorMeta}.
+     */
+    public ItemBuilder trimArmor(@NotNull TrimMaterial trimMaterial, @NotNull TrimPattern trimPattern) {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof ArmorMeta meta))
+            throw new IllegalStateException("The ItemStack must have ArmorMeta!");
+        meta.setTrim(new ArmorTrim(trimMaterial, trimPattern));
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the armor trim of the ItemStack.
+     *
+     * @return The {@link ArmorTrim} of the ItemStack, or {@code null} if the ItemStack is invalid or has no trim set.
+     * @throws IllegalStateException if the ItemStack does not have {@link ArmorMeta}.
+     */
+    public ArmorTrim getArmorTrim() {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof ArmorMeta meta))
+            throw new IllegalStateException("The ItemStack must have ArmorMeta!");
+        return meta.getTrim();
+    }
+
     /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
