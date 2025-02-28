@@ -1,12 +1,10 @@
 package io.github.lucfr1746.llibrary.itemstack;
 
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.Material;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.tag.DamageTypeTags;
@@ -591,6 +589,21 @@ public class ItemBuilder {
         if (isInvalidItemStack()) return null;
         return new FoodBuilder(this.itemStack);
     }
+
+    public ItemBuilder setEnchantmentGliderOverride(boolean value){
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.setEnchantmentGlintOverride(value);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    public boolean hasEnchantmentGliderOverride() {
+        if (isInvalidItemStack()) return false;
+        return getItemMeta().getEnchantmentGlintOverride();
+    }
+
+    
 
     /**
      * Validates the {@link ItemStack}.
