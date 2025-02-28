@@ -10,8 +10,10 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
+import org.bukkit.entity.Item;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
@@ -1109,6 +1111,32 @@ public class ItemBuilder {
         }
         return Collections.emptyList();
     }
+
+    /**
+     * Sets the rarity of the ItemStack.
+     *
+     * @param rarity The ItemRarity to set.
+     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemBuilder setRarity(@NotNull ItemRarity rarity) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.setRarity(rarity);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the rarity of the ItemStack.
+     *
+     * @return The ItemRarity of the ItemStack, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemRarity getRarity() {
+        if (isInvalidItemStack()) return null;
+        return getItemMeta().getRarity();
+    }
+
+    
 
     /**
      * Validates the {@link ItemStack}.
