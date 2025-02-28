@@ -603,6 +603,26 @@ public class ItemBuilder {
         return getItemMeta().getEnchantmentGlintOverride();
     }
 
+    public ItemBuilder setMusicInstrument(MusicInstrument type) {
+        if (isInvalidItemStack()) return null;
+        if (getItemMeta() instanceof MusicInstrumentMeta meta) {
+            meta.setInstrument(type);
+            this.itemStack.setItemMeta(meta);
+        } else {
+            throw new IllegalStateException("Required ItemStack has MusicInstrumentMeta!");
+        }
+        return this;
+    }
+
+    public MusicInstrument getMusicInstrument() {
+        if (isInvalidItemStack()) return null;
+        if (getItemMeta() instanceof MusicInstrumentMeta meta) {
+            return meta.getInstrument();
+        } else {
+            throw new IllegalStateException("Required ItemStack has MusicInstrumentMeta!");
+        }
+    }
+
     
 
     /**
