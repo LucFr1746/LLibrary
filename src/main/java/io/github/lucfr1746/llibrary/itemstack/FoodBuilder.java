@@ -5,7 +5,6 @@ import io.github.lucfr1746.llibrary.utils.ParsedItem;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.components.consumable.ConsumableComponent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -132,7 +131,7 @@ public class FoodBuilder {
 
                 Map<String, Object> potionMap = new LinkedHashMap<>();
                 PotionEffect pot = food.potionEffect();
-                potionMap.put("id", pot.getType().getKeyOrThrow().toString());
+                potionMap.put("id", pot.getType().getKey().toString());
                 potionMap.put("duration", pot.getDuration());
                 potionMap.put("amplifier", pot.getAmplifier());
                 potionMap.put("ambient", pot.isAmbient());
