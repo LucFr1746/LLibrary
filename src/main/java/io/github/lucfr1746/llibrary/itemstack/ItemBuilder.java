@@ -623,7 +623,26 @@ public class ItemBuilder {
         }
     }
 
-    
+    public ItemBuilder setFlags(@NotNull ItemFlag... flags) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.addItemFlags(flags);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    public ItemBuilder removeFlags(@NotNull ItemFlag... flags) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.removeItemFlags(flags);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    public boolean hasFlag(@NotNull ItemFlag flag) {
+        if (isInvalidItemStack()) return false;
+        return getItemMeta().hasItemFlag(flag);
+    }
 
     /**
      * Validates the {@link ItemStack}.
