@@ -14,6 +14,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Axolotl;
+import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
@@ -1276,6 +1277,93 @@ public class ItemBuilder {
         if (!(getItemMeta() instanceof ArmorMeta meta))
             throw new IllegalStateException("The ItemStack must have ArmorMeta!");
         return meta.getTrim();
+    }
+
+    /**
+     * Sets the body color of the tropical fish in the ItemStack.
+     *
+     * @param color The body color to set. Must not be null.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     */
+    public ItemBuilder setTropicalFishBodyColor(@NotNull DyeColor color) {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
+            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
+        meta.setBodyColor(color);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the body color of the tropical fish in the ItemStack.
+     *
+     * @return The {@link DyeColor} of the tropical fish's body, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     */
+    public DyeColor getTropicalFishBodyColor() {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
+            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
+        return meta.getBodyColor();
+    }
+
+    /**
+     * Sets the pattern color of the tropical fish in the ItemStack.
+     *
+     * @param color The pattern color to set. Must not be null.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     */
+    public ItemBuilder setTropicalFishPatternColor(@NotNull DyeColor color) {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
+            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
+        meta.setPatternColor(color);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the pattern color of the tropical fish in the ItemStack.
+     *
+     * @return The {@link DyeColor} of the tropical fish's pattern, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     */
+    public DyeColor getTropicalFishPatternColor() {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
+            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
+        return meta.getPatternColor();
+    }
+
+    /**
+     * Sets the pattern of the tropical fish in the ItemStack.
+     *
+     * @param pattern The pattern to set. Must not be null.
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     */
+    public ItemBuilder setTropicalFishPattern(@NotNull TropicalFish.Pattern pattern) {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
+            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
+        meta.setPattern(pattern);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Gets the pattern of the tropical fish in the ItemStack.
+     *
+     * @return The {@link TropicalFish.Pattern} of the tropical fish, or {@code null} if the ItemStack is invalid.
+     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     */
+    public TropicalFish.Pattern getTropicalFishPattern() {
+        if (isInvalidItemStack()) return null;
+        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
+            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
+        return meta.getPattern();
     }
 
     /**
