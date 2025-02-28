@@ -792,6 +792,41 @@ public class ItemBuilder {
     }
 
     /**
+     * Sets the custom item model using a NamespacedKey.
+     *
+     * @param key the NamespacedKey representing the item model.
+     * @return the current ItemBuilder instance, or null if the ItemStack is invalid.
+     */
+    public ItemBuilder setItemModel(@Nullable NamespacedKey key) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        meta.setItemModel(key);
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    /**
+     * Sets the custom item model using a namespace and key.
+     *
+     * @param key  the namespace of the item model.
+     * @param name the key representing the item model.
+     * @return the current ItemBuilder instance.
+     */
+    public ItemBuilder setItemModel(@NotNull String key, @NotNull String name) {
+        return setItemModel(new NamespacedKey(key, name));
+    }
+
+    /**
+     * Sets the custom item model using the "minecraft" namespace and a key.
+     *
+     * @param name the key representing the item model.
+     * @return the current ItemBuilder instance.
+     */
+    public ItemBuilder setItemModel(@NotNull String name) {
+        return setItemModel(new NamespacedKey(NamespacedKey.MINECRAFT, name));
+    }
+
+    /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
      *
