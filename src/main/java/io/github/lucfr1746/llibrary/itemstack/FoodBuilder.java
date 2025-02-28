@@ -54,9 +54,19 @@ public class FoodBuilder {
      * @param animation The animation type.
      * @return The current FoodBuilder instance.
      */
-    public FoodBuilder setFoodAnimation(ConsumableComponent.Animation animation) {
+    public FoodBuilder setFoodAnimation(String animation) {
+        Set<String> animations = new LinkedHashSet<>(Arrays.asList(
+                "drink", "eat", "crossbow", "none",
+                "block", "bow", "spear", "spyglass",
+                "toot_horn", "brush"
+        ));
+        animation = animations.contains(animation.toLowerCase()) ? animation.toLowerCase() : null;
+        if (animation == null) {
+            throw new IllegalArgumentException("Invalid animation. Expected: \"drink\", \"eat\", \"crossbow\", \"none\", \"block\", \"bow\", \"spear\", \"spyglass\", \"toot_horn\", \"brush\"");
+        }
+
         ParsedItem parsed = new ParsedItem(this.itemstack);
-        parsed.set(animation.toString(), Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "animation");
+        parsed.set(animation, Keys.Component.CROSS_VERSION_CONSUMABLE.toString(), "animation");
         this.itemstack = parsed.toItemStack();
         return this;
     }
