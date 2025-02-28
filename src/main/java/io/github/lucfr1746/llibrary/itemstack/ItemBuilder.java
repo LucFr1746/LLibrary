@@ -1207,8 +1207,45 @@ public class ItemBuilder {
         return ((Repairable) getItemMeta()).getRepairCost();
     }
 
-    
+    /**
+     * Sets the tooltip style of the ItemStack.
+     *
+     * @param value The tooltip style to set. Use "clear" to reset the tooltip style to default.
+     *              Format can be either "namespace:key" or simply "key" (which defaults to the "minecraft" namespace).
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     */
+    public ItemBuilder setToolTipStyle(String value) {
+        if (isInvalidItemStack()) return null;
+        ItemMeta meta = getItemMeta();
+        if (value.equalsIgnoreCase("clear")) {
+            meta.setTooltipStyle(null);
+            this.itemStack.setItemMeta(meta);
+            return this;
+        }
+        String pre;
+        String post;
+        if (!value.contains(":")) {
+            pre = NamespacedKey.MINECRAFT;
+            post = value;
+        } else {
+            pre = value.split(":")[0];
+            post = value.split(":")[1];
+        }
+        meta.setTooltipStyle(new NamespacedKey(pre, post));
+        this.itemStack.setItemMeta(meta);
+        return this;
+    }
 
+    /**
+     * Gets the tooltip style of the ItemStack.
+     *
+     * @return The tooltip style as a {@link NamespacedKey}, or {@code null} if the ItemStack is invalid or has no tooltip style set.
+     */
+    public NamespacedKey getToolTipStyle() {
+        if (isInvalidItemStack()) return null;
+        return getItemMeta().getTooltipStyle();
+    }
+    
     /**
      * Validates the {@link ItemStack}.
      * Throws an exception if the item's material is {@link Material#AIR}.
