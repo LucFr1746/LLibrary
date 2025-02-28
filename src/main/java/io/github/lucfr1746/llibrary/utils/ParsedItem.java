@@ -58,10 +58,10 @@ public class ParsedItem {
     private ParsedItem(Material mat, String raw) {
         int index = raw.indexOf("{");
         if (index == -1) {
-            type = mat.getKeyOrThrow().toString();
+            type = mat.getKey().toString();
             return;
         }
-        type = mat.getKeyOrThrow().toString();
+        type = mat.getKey().toString();
         raw = raw.substring(index);
         components.putAll((Map<String, Object>) eatMap(raw, 0, 0).payload);
     }

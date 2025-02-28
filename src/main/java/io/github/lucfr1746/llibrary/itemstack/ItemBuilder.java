@@ -1144,13 +1144,15 @@ public class ItemBuilder {
     }
 
     /**
-     * Renames the ItemStack by setting its display name.
+     * Sets the display name of the ItemStack.
      *
      * @param name The new display name for the ItemStack.
-     *             - If {@code null} or "clear" (case-insensitive), the display name is removed (reset to default).
-     *             - If empty or blank, the display name is set to white ("&f").
-     *             - Otherwise, the name is formatted using {@code Util.formatText()} and color codes are translated.
-     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid.
+     *             <ul>
+     *                 <li>If {@code null} or "clear" (case-insensitive), the display name is removed (reset to default).</li>
+     *                 <li>If empty or blank, the display name is set to white ("&f").</li>
+     *                 <li>Otherwise, the name is formatted using {@link Util#formatText(String)} and color codes are translated.</li>
+     *             </ul>
+     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
      */
     public ItemBuilder rename(@Nullable String name) {
         if (isInvalidItemStack()) return null;
