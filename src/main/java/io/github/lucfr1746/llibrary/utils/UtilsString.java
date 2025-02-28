@@ -138,7 +138,7 @@ public class UtilsString {
     }
 
     /**
-     * Reverts color codes by replacing the section symbol (§) with ampersand (&).
+     * Reverts color codes.
      *
      * @param text The text to process.
      * @return The text with color codes reverted.

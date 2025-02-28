@@ -32,7 +32,7 @@ public class Util {
 
     /**
      * Formats text using MiniMessage and ChatColor.
-     * Supports both legacy color codes (e.g., &a) and hex codes (e.g., &#123456).
+     * Supports both legacy color codes: normal and hex.
      *
      * @param text The text to format.
      * @return The formatted text.

@@ -1149,7 +1149,7 @@ public class ItemBuilder {
      * @param name The new display name for the ItemStack.
      *             <ul>
      *                 <li>If {@code null} or "clear" (case-insensitive), the display name is removed (reset to default).</li>
-     *                 <li>If empty or blank, the display name is set to white ("&f").</li>
+     *                 <li>If empty or blank, the display name is set to white.</li>
      *                 <li>Otherwise, the name is formatted using {@link Util#formatText(String)} and color codes are translated.</li>
      *             </ul>
      * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
