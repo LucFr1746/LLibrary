@@ -1,4 +1,4 @@
-package io.github.lucfr1746.llibrary.utils;
+package io.github.lucfr1746.llibrary.utils.APIs;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
