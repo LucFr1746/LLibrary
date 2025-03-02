@@ -1,12 +1,19 @@
 package io.github.lucfr1746.llibrary;
 
-import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIBukkitConfig;
+import dev.jorel.commandapi.*;
+import dev.jorel.commandapi.arguments.Argument;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.StringArgument;
 import io.github.lucfr1746.llibrary.metrics.bStats;
 import io.github.lucfr1746.llibrary.utils.Hooks;
-import io.github.lucfr1746.llibrary.utils.LoggerAPI;
+import io.github.lucfr1746.llibrary.utils.APIs.LoggerAPI;
+import io.github.lucfr1746.llibrary.utils.PluginLoader;
 import io.github.lucfr1746.llibrary.utils.Util;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The main class for the {@link LLibrary} plugin.
@@ -14,6 +21,8 @@ import org.bukkit.plugin.java.JavaPlugin;
  * It also integrates the {@link CommandAPI} for command handling.
  */
 public final class LLibrary extends JavaPlugin {
+
+    private static LoggerAPI logger;
 
     /**
      * Default constructor for the {@link LLibrary} plugin.
@@ -31,7 +40,9 @@ public final class LLibrary extends JavaPlugin {
     @Override
     public void onEnable() {
         new bStats(this, 23768);
+        logger = new LoggerAPI(this);
         CommandAPI.onEnable();
+        registerCommands();
         // Plugin startup logic
         if (Util.hasPaperAPI()) {
             new LoggerAPI(this).success("PaperAPI detected, some features are now enabled!");
@@ -50,12 +61,34 @@ public final class LLibrary extends JavaPlugin {
                 new LoggerAPI(this).error(e.getMessage());
             }
         }
+        new PluginLoader(this);
     }
 
     @Override
     public void onDisable() {
         CommandAPI.onDisable();
         // Plugin shutdown logic
+    }
+
+    private void registerCommands() {
+        List<Argument<?>> arguments = new ArrayList<>();
+        arguments.add(new StringArgument("reload")
+                .replaceSuggestions(ArgumentSuggestions.stringsWithTooltips(info ->
+                        new IStringTooltip[] {
+                                StringTooltip.ofString("reload", "Reload the plugin"),
+                        }
+                ))
+        );
+
+        new CommandAPICommand("llibrary")
+                .withAliases("llib")
+                .withArguments(arguments)
+                .executes((sender, args) -> {
+                    sender.sendMessage("Reloading LLibrary...");
+                    new PluginLoader(this);
+                    sender.sendMessage(ChatColor.GREEN + "Successfully reloaded LLibrary!");
+                })
+                .register();
     }
 
     /**
@@ -67,5 +100,9 @@ public final class LLibrary extends JavaPlugin {
      */
     public static LLibrary getInstance() {
         return JavaPlugin.getPlugin(LLibrary.class);
+    }
+
+    public static LoggerAPI getLoggerAPI() {
+        return logger;
     }
 }
