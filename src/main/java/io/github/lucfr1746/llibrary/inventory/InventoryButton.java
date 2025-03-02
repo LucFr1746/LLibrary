@@ -26,13 +26,13 @@ public class InventoryButton {
     private Consumer<InventoryClickEvent> eventConsumer;
 
     /**
-     * The name of the button, which can be used for identification or display purposes.
+     * The id of the button, which can be used for identification.
      */
-    private String buttonName;
+    private String id;
 
     /**
      * Default constructor that initializes the InventoryButton instance with default values.
-     * This constructor does not set any of the button's properties and allows for subsequent configuration.
+     * This constructor does not set any of the button's properties and allows for later configuration.
      */
     public InventoryButton() {
         // Default constructor with no predefined values.
@@ -61,15 +61,17 @@ public class InventoryButton {
     }
 
     /**
-     * Sets the name of the button.
+     * Sets the id of the button.
      *
-     * @param buttonName The name of the button, usually for identification purposes.
+     * @param buttonID The id of the button, usually for identification purposes.
      * @return The current {@link InventoryButton} instance for method chaining.
      */
-    public InventoryButton name(String buttonName) {
-        this.buttonName = buttonName;
+    public InventoryButton id(String buttonID) {
+        this.id = buttonID;
         return this;
     }
+
+
 
     /**
      * Gets the event consumer for handling the {@link InventoryClickEvent}.
@@ -90,11 +92,11 @@ public class InventoryButton {
     }
 
     /**
-     * Gets the name of the button.
+     * Gets the id of the button.
      *
-     * @return The name of the button, or {@code null} if not set.
+     * @return The id of the button, or {@code null} if not set.
      */
-    public String getButtonName() {
-        return this.buttonName;
+    public String getID() {
+        return this.id;
     }
 }
