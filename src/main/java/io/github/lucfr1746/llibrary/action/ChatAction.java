@@ -14,7 +14,8 @@ public class ChatAction extends Action {
         return this.message;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         target.chat(this.message);
     }
 }

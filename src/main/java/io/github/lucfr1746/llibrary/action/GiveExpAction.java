@@ -17,7 +17,8 @@ public class GiveExpAction extends Action {
         return this.amount;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         target.setExp(target.getExp() + this.amount);
     }
 }

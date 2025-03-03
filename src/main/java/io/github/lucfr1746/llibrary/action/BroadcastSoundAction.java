@@ -28,7 +28,8 @@ public class BroadcastSoundAction extends Action {
         return this.pitch;
     }
 
-    public void run() {
+    @Override
+    public void execute(Player target) {
         for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
             broadcastTarget.playSound(broadcastTarget.getLocation(), this.sound, this.volume, this.pitch);
         }

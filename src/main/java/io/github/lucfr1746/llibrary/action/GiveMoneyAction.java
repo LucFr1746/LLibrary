@@ -19,7 +19,8 @@ public class GiveMoneyAction extends Action {
         return amount;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         if (!Hooks.isVault()) {
             throw new IllegalStateException("There is no economy API hooked!");
         }

@@ -17,7 +17,8 @@ public class TakeExpAction extends Action {
         return this.amount;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         target.setExp(Math.max(0, target.getExp() - this.amount));
     }
 }

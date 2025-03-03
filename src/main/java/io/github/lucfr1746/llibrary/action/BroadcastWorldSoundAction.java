@@ -27,7 +27,8 @@ public class BroadcastWorldSoundAction extends Action {
         return this.pitch;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         for (final Player broadcastTarget : target.getWorld().getPlayers()) {
             broadcastTarget.playSound(broadcastTarget.getLocation(), this.sound, this.volume, this.pitch);
         }

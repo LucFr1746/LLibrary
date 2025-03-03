@@ -27,7 +27,8 @@ public class SoundAction extends Action {
         return this.pitch;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         target.playSound(target.getLocation(), this.sound, this.volume, this.pitch);
     }
 }

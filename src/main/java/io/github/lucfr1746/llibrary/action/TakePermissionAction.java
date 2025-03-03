@@ -15,7 +15,8 @@ public class TakePermissionAction extends Action {
         return this.permission;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
         LLibrary.getPermissions().playerRemove(target, this.permission);
     }
 }
