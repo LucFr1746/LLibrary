@@ -8,12 +8,12 @@ open-requirement:
     type: PERMISSION
     permission: llibrary.itembuilder.gui.open
     deny-action:
-      - "[message] &cYou don't have permission to do that!"
-      - '[sound] ENTITY_ENDERMAN_TELEPORT'
+      - "[message] <red>You don't have permission to do that!"
+      - "[sound] ENTITY_ENDERMAN_TELEPORT"
 
 open-action:
-  - '[message] <dark_gray>[</dark_gray><green><b>ITEM BUILDER</b></green><dark_gray>]</dark_gray><yellow> Opening...</yellow>'
-  - '[sound] UI_BUTTON_CLICK'
+  - "[message] <dark_gray>[</dark_gray><green><b>ITEM BUILDER</b></green><dark_gray>]</dark_gray><yellow> Opening...</yellow>"
+  - "[sound] UI_BUTTON_CLICK"
 
 menu-title: "Item Builder"
 menu-type: GENERIC_9X6
