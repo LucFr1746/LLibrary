@@ -2,13 +2,13 @@ package io.github.lucfr1746.llibrary.action;
 
 import org.bukkit.Sound;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 public class ActionLoader {
-
-    private final String input;
 
     private static final Map<String, Function<String, Action>> ACTIONS = new HashMap<>();
 
@@ -26,33 +26,40 @@ public class ActionLoader {
         ACTIONS.put(ActionType.GIVE_PERM.getIdentifier(), GivePermissionAction::new);
     }
 
-    public ActionLoader(String input) {
-        this.input = input.stripLeading();
-    }
-
-    public Action getAction() {
-        String[] args = input.split(" ", 2);
+    public Action getAction(String input) {
+        String[] args = input.split(" ");
         Function<String, Action> actionCreator = ACTIONS.get(args[0]);
 
         if (actionCreator != null) {
-            return actionCreator.apply(args.length > 1 ? args[1] : "");
+            StringBuilder finalMess = new StringBuilder();
+            for (int i = 1; i < args.length; i++) {
+                finalMess.append(args[i]).append(" ");
+            }
+            return actionCreator.apply(args.length > 1 ? finalMess.toString().stripTrailing() : "");
         }
 
         return getSoundAction(args);
     }
 
+    public List<Action> getActions(List<String> inputs) {
+        List<Action> actions = new ArrayList<>();
+        for (String actionStr : inputs) {
+            actions.add(getAction(actionStr));
+        }
+        return actions;
+    }
+
     private Action getSoundAction(String[] args) {
         if (args.length < 2) return null;
-
         try {
             Sound sound = Sound.valueOf(args[1]);
             float volume = args.length > 2 ? parseFloatOrDefault(args[2]) : 1;
             float pitch = args.length > 3 ? parseFloatOrDefault(args[3]) : 1;
 
             return switch (args[0]) {
-                case "BROADCAST_SOUND" -> new BroadcastSoundAction(sound, volume, pitch);
-                case "BROADCAST_WORLD_SOUND" -> new BroadcastWorldSoundAction(sound, volume, pitch);
-                case "SOUND" -> new SoundAction(sound, volume, pitch);
+                case "[broadcastsound]" -> new BroadcastSoundAction(sound, volume, pitch);
+                case "[broadcastworldsound]" -> new BroadcastWorldSoundAction(sound, volume, pitch);
+                case "[sound]" -> new SoundAction(sound, volume, pitch);
                 default -> null;
             };
         } catch (IllegalArgumentException e) {
