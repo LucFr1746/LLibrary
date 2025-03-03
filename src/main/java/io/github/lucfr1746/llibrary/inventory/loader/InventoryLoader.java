@@ -4,6 +4,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.action.Action;
+import io.github.lucfr1746.llibrary.action.ActionLoader;
 import io.github.lucfr1746.llibrary.inventory.InventoryBuilder;
 import io.github.lucfr1746.llibrary.inventory.InventoryManager;
 import io.github.lucfr1746.llibrary.requirement.HasPermissionRequirement;
@@ -24,6 +26,7 @@ public class InventoryLoader extends InventoryBuilder {
     private final String menuId;
     private final List<String> openCommands = new ArrayList<>();
     private final Map<String, Requirement> openRequirements = new HashMap<>();
+    private final List<Action> openActions = new ArrayList<>();
 
     public InventoryLoader(FileConfiguration guiConfig) {
         this.guiConfig = Objects.requireNonNull(guiConfig, "guiConfig cannot be null");
@@ -36,6 +39,7 @@ public class InventoryLoader extends InventoryBuilder {
 
         loadOpenRequirements();
         loadOpenCommands();
+        loadOpenActions();
         loadMenuProperties();
 
         PluginLoader.registerInv(this);
@@ -51,6 +55,10 @@ public class InventoryLoader extends InventoryBuilder {
 
     public Map<String, Requirement> getOpenRequirements() {
         return this.openRequirements;
+    }
+
+    public List<Action> getOpenActions() {
+        return this.openActions;
     }
 
     private void loadOpenRequirements() {
@@ -82,7 +90,8 @@ public class InventoryLoader extends InventoryBuilder {
     private void addPermissionRequirement(String key, ConfigurationSection section) {
         String permission = section.getString("permission");
         if (permission != null) {
-            openRequirements.put(key, new HasPermissionRequirement(permission));
+            List<Action> denyActions = new ActionLoader().getActions(section.getStringList("deny-action"));
+            openRequirements.put(key, new HasPermissionRequirement(permission).setDenyHandler(denyActions));
         } else {
             LLibrary.getLoggerAPI().error("Missing permission value for " + key + " in menu " + menuId);
         }
@@ -107,6 +116,9 @@ public class InventoryLoader extends InventoryBuilder {
         }
     }
 
+    private void loadOpenActions() {
+        openActions.addAll(new ActionLoader().getActions(guiConfig.getStringList("open-action")));
+    }
 
     private void loadMenuProperties() {
         Optional.ofNullable(guiConfig.getString("menu-title")).ifPresent(this::setTitle);
@@ -121,8 +133,24 @@ public class InventoryLoader extends InventoryBuilder {
         new CommandAPICommand(openCommands.getFirst())
                 .withAliases(openCommands.subList(1, openCommands.size()).toArray(String[]::new))
                 .executesPlayer((player, args) -> {
-                    if (openRequirements.values().stream().allMatch(req -> req instanceof HasPermissionRequirement permissionReq && permissionReq.evaluate(player))) {
-                        new InventoryManager().openGUI(this, player);
+                    if (openRequirements.values().stream().allMatch(req -> req instanceof HasPermissionRequirement)) {
+                        boolean hasAllPermissions = openRequirements.values().stream()
+                                .filter(req -> req instanceof HasPermissionRequirement)
+                                .map(req -> (HasPermissionRequirement) req)
+                                .allMatch(permissionReq -> permissionReq.evaluate(player));
+
+                        if (hasAllPermissions) {
+                            new InventoryManager().openGUI(this, player);
+                        } else {
+                            openRequirements.values().stream()
+                                    .filter(req -> req instanceof HasPermissionRequirement)
+                                    .map(req -> (HasPermissionRequirement) req)
+                                    .forEach(permissionReq -> {
+                                        if (!permissionReq.evaluate(player)) {
+                                            permissionReq.getDenyHandlers().forEach(handler -> handler.execute(player));
+                                        }
+                                    });
+                        }
                     }
                 })
                 .register();
