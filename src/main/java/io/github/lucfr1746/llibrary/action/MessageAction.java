@@ -1,12 +1,16 @@
 package io.github.lucfr1746.llibrary.action;
 
 import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.utils.Hooks;
+import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class MessageAction extends Action {
 
-    private final String message;
+    private String message;
 
     public MessageAction(String message) {
         this.message = message;
@@ -16,7 +20,11 @@ public class MessageAction extends Action {
         return this.message;
     }
 
-    public void run(Player target) {
+    @Override
+    public void execute(Player target) {
+        if (Hooks.isPAPIEnabled()) {
+            this.message = PlaceholderAPI.setPlaceholders(target, this.message);
+        }
         LLibrary.getInstance().audiences().player(target).sendMessage(MiniMessage.miniMessage().deserialize(this.message));
     }
 }
