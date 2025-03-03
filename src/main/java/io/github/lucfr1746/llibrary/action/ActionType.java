@@ -9,7 +9,7 @@ public enum ActionType {
     MESSAGE("[message]", "Send a message to the player"),
     BROADCAST("[broadcast]", "Broadcast a message to the server"),
     BROADCAST_SOUND("[broadcastsound]", "Broadcast a sound to the server"),
-    BROADCAST_WORLD_SOUND("[broadcastworld]", "Broadcast a sound to the player's world"),
+    BROADCAST_WORLD_SOUND("[broadcastworldsound]", "Broadcast a sound to the player's world"),
     SOUND("[sound]", "Play a sound for a the specific player"),
     TAKE_MONEY("[takemoney]", "Take money from a player (requires Vault)"),
     GIVE_MONEY("[givemoney]", "Give money to a player (requires Vault)"),
