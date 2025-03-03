@@ -1,5 +1,7 @@
 package io.github.lucfr1746.llibrary.inventory.loader;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.inventory.InventoryBuilder;
@@ -8,6 +10,7 @@ import io.github.lucfr1746.llibrary.requirement.HasPermissionRequirement;
 import io.github.lucfr1746.llibrary.requirement.Requirement;
 import io.github.lucfr1746.llibrary.requirement.RequirementType;
 import io.github.lucfr1746.llibrary.utils.APIs.LoggerAPI;
+import io.github.lucfr1746.llibrary.utils.PluginLoader;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,6 +37,20 @@ public class InventoryLoader extends InventoryBuilder {
         loadOpenRequirements();
         loadOpenCommands();
         loadMenuProperties();
+
+        PluginLoader.registerInv(this);
+    }
+
+    public String getMenuId() {
+        return this.menuId;
+    }
+
+    public List<String> getOpenCommands() {
+        return this.openCommands;
+    }
+
+    public Map<String, Requirement> getOpenRequirements() {
+        return this.openRequirements;
     }
 
     private void loadOpenRequirements() {
@@ -72,11 +89,24 @@ public class InventoryLoader extends InventoryBuilder {
     }
 
     private void loadOpenCommands() {
-        openCommands.addAll(guiConfig.getStringList("open-command"));
+        String singleCmd = guiConfig.getString("open-command");
+        if (singleCmd != null && !singleCmd.isBlank()) {
+            try {
+                JsonElement element = JsonParser.parseString(singleCmd);
+                if (element.isJsonArray()) openCommands.addAll(guiConfig.getStringList("open-command"));
+                else openCommands.add(singleCmd);
+            } catch (Exception e) {
+                openCommands.add(singleCmd);
+            }
+        } else {
+            openCommands.addAll(guiConfig.getStringList("open-command"));
+        }
+
         if (!openCommands.isEmpty()) {
             registerOpenCommands();
         }
     }
+
 
     private void loadMenuProperties() {
         Optional.ofNullable(guiConfig.getString("menu-title")).ifPresent(this::setTitle);
@@ -88,7 +118,7 @@ public class InventoryLoader extends InventoryBuilder {
     private void registerOpenCommands() {
         if (openCommands.isEmpty()) return;
 
-        new CommandAPICommand(openCommands.get(0))
+        new CommandAPICommand(openCommands.getFirst())
                 .withAliases(openCommands.subList(1, openCommands.size()).toArray(String[]::new))
                 .executesPlayer((player, args) -> {
                     if (openRequirements.values().stream().allMatch(req -> req instanceof HasPermissionRequirement permissionReq && permissionReq.evaluate(player))) {
