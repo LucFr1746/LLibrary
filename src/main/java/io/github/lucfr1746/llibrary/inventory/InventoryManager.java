@@ -1,6 +1,8 @@
 package io.github.lucfr1746.llibrary.inventory;
 
 import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.action.Action;
+import io.github.lucfr1746.llibrary.inventory.loader.InventoryLoader;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -46,6 +48,19 @@ public class InventoryManager {
         Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> player.openInventory(inventoryBuilder.getInventoryView()));
     }
 
+    public void openGUI(InventoryLoader inventoryLoader, Player player) {
+        InventoryListener guiListener = new InventoryListener(this);
+        Bukkit.getPluginManager().registerEvents(guiListener, LLibrary.getInstance());
+
+        inventoryLoader.decorate(player);
+        this.registerActiveInventory(inventoryLoader.getInventoryView().getTopInventory(), inventoryLoader);
+        Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> {
+            player.openInventory(inventoryLoader.getInventoryView());
+            for (Action action : inventoryLoader.getOpenActions()) {
+                action.execute(player);
+            }
+        });
+    }
 
     /**
      * Registers an inventory and its associated {@link InventoryBuilder} as the handler for the inventory.
