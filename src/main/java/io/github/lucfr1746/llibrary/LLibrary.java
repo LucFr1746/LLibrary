@@ -9,7 +9,11 @@ import io.github.lucfr1746.llibrary.utils.Hooks;
 import io.github.lucfr1746.llibrary.utils.APIs.LoggerAPI;
 import io.github.lucfr1746.llibrary.utils.PluginLoader;
 import io.github.lucfr1746.llibrary.utils.Util;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -23,6 +27,11 @@ import java.util.List;
 public final class LLibrary extends JavaPlugin {
 
     private static LoggerAPI logger;
+
+    private BukkitAudiences audiences;
+
+    private static Economy econ = null;
+    private static Permission perms = null;
 
     /**
      * Default constructor for the {@link LLibrary} plugin.
@@ -41,6 +50,7 @@ public final class LLibrary extends JavaPlugin {
     public void onEnable() {
         new bStats(this, 23768);
         logger = new LoggerAPI(this);
+        this.audiences = BukkitAudiences.create(this);
         CommandAPI.onEnable();
         registerCommands();
         // Plugin startup logic
@@ -56,18 +66,23 @@ public final class LLibrary extends JavaPlugin {
         }
         if (Hooks.isVault()) {
             try {
+                setupEconomy();
+                setupPermissions();
                 new LoggerAPI(this).success("Hooking into Vault");
             } catch (Exception e) {
                 new LoggerAPI(this).error(e.getMessage());
             }
         }
-        new PluginLoader(this);
+        new PluginLoader(this).loadPlugin();
     }
 
     @Override
     public void onDisable() {
         CommandAPI.onDisable();
-        // Plugin shutdown logic
+        if (this.audiences != null) {
+            this.audiences.close();
+            this.audiences = null;
+        }
     }
 
     private void registerCommands() {
@@ -85,10 +100,50 @@ public final class LLibrary extends JavaPlugin {
                 .withArguments(arguments)
                 .executes((sender, args) -> {
                     sender.sendMessage("Reloading LLibrary...");
-                    new PluginLoader(this);
+                    new PluginLoader(this).disablePlugin().loadPlugin();
                     sender.sendMessage(ChatColor.GREEN + "Successfully reloaded LLibrary!");
                 })
                 .register();
+    }
+
+    public BukkitAudiences audiences() {
+        if (this.audiences == null) {
+            throw new IllegalStateException("Something wrong with the Adventure API!");
+        }
+        return this.audiences;
+    }
+
+    private void setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return;
+        }
+        econ = rsp.getProvider();
+    }
+
+    private void setupPermissions() {
+        RegisteredServiceProvider<Permission> rsp = getServer().getServicesManager().getRegistration(Permission.class);
+        if (rsp == null) {
+            return;
+        }
+        perms = rsp.getProvider();
+    }
+
+    public static Economy getEconomy() {
+        if (econ == null) {
+            throw new IllegalStateException("Vault not hooked!");
+        }
+        return econ;
+    }
+
+    public static Permission getPermissions() {
+        if (perms == null) {
+            throw new IllegalStateException("Vault not hooked!");
+        }
+        return perms;
     }
 
     /**
