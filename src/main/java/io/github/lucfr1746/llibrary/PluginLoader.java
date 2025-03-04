@@ -96,7 +96,7 @@ class PluginLoader {
 
         private void unregisterInvCMD(InventoryLoader inventoryLoader) {
             for (String cmd : inventoryLoader.getOpenCommands()) {
-                Bukkit.getScheduler().runTask(this.plugin, () -> CommandAPI.unregister(cmd));
+                CommandAPI.unregister(cmd);
             }
         }
     }
