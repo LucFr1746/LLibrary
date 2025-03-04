@@ -17,3 +17,14 @@ open-action:
 
 menu-title: "Item Builder"
 menu-type: GENERIC_9X6
+
+items:
+  close:
+    material: BARRIER
+    slot: 49
+    priority: 0
+    display-name: "<red>Close</red>"
+  filled-items:
+    material: BLACK_STAINED_GLASS_PANE
+    slot: ALL
+    priority: 0

@@ -1,16 +1,11 @@
 package io.github.lucfr1746.llibrary.itemstack.gui;
 
-import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.inventory.loader.InventoryLoader;
-import io.github.lucfr1746.llibrary.utils.APIs.FileAPI;
+import org.bukkit.configuration.file.FileConfiguration;
 
-public class ItemBuilderGUI {
+public class ItemBuilderGUI extends InventoryLoader {
 
-    private final LLibrary plugin;
-
-    public ItemBuilderGUI(LLibrary plugin) {
-        this.plugin = plugin;
-
-        new InventoryLoader(new FileAPI(this.plugin).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
+    public ItemBuilderGUI(FileConfiguration guiConfig) {
+        super(guiConfig);
     }
 }
