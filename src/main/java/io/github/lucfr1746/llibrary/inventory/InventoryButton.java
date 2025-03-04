@@ -1,9 +1,11 @@
 package io.github.lucfr1746.llibrary.inventory;
 
+import io.github.lucfr1746.llibrary.requirement.Requirement;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -31,11 +33,22 @@ public class InventoryButton {
     private String id;
 
     /**
+     * The priority of the button, which determines its order when displayed in the inventory GUI.
+     * Buttons with higher priority are displayed first.
+     */
+    private int priority;
+
+    /**
+     * The requirements that must be met for the button to be displayed.
+     * Buttons that do not meet the requirements are hidden from the player.
+     */
+    private List<Requirement> viewRequirement;
+
+    /**
      * Default constructor that initializes the InventoryButton instance with default values.
      * This constructor does not set any of the button's properties and allows for later configuration.
      */
     public InventoryButton() {
-        // Default constructor with no predefined values.
     }
 
     /**
@@ -71,7 +84,26 @@ public class InventoryButton {
         return this;
     }
 
+    /**
+     * Sets the priority of the button.
+     *
+     * @param priority The priority of the button, where higher numbers indicate higher priority.
+     * @return The current {@link InventoryButton} instance for method chaining.
+     */
+    public InventoryButton priority(int priority) {
+        this.priority = priority;
+        return this;
+    }
 
+    /**
+     * Sets the requirements that must be met for the button to be displayed.
+     *
+     * @param viewRequirements The requirements that must be met for the button to be displayed.
+     */
+    public InventoryButton viewRequirements(List<Requirement> viewRequirements) {
+        this.viewRequirement = viewRequirements;
+        return this;
+    }
 
     /**
      * Gets the event consumer for handling the {@link InventoryClickEvent}.
@@ -98,5 +130,23 @@ public class InventoryButton {
      */
     public String getID() {
         return this.id;
+    }
+
+    /**
+     * Gets the priority of the button.
+     *
+     * @return The priority of the button.
+     */
+    public int getPriority() {
+        return this.priority;
+    }
+
+    /**
+     * Gets the requirements that must be met for the button to be displayed.
+     *
+     * @return The requirements that must be met for the button to be displayed, or {@code null} if not set.
+     */
+    public List<Requirement> getViewRequirements() {
+        return this.viewRequirement;
     }
 }
