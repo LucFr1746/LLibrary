@@ -2,6 +2,9 @@ package io.github.lucfr1746.llibrary.itemstack;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBTCompoundList;
 import io.github.lucfr1746.llibrary.utils.Util;
 import io.github.lucfr1746.llibrary.utils.UtilsString;
 import net.kyori.adventure.platform.bukkit.MinecraftComponentSerializer;
@@ -1391,6 +1394,99 @@ public class ItemBuilder {
     public Material getType() {
         return this.itemStack.getType();
     }
+
+    /**
+     * Sets the texture of the skull item to the given texture.
+     * <p>
+     * This method modifies the NBT data of the item to set the texture for a PLAYER_HEAD item.
+     * If the item is invalid or not a PLAYER_HEAD, it returns {@code null}.
+     *
+     * @param texture The texture strings to be set for the skull. This should be the base64-encoded texture value.
+     * @return The current {@link ItemBuilder} instance to allow method chaining,
+     * or {@code null} if the item is invalid or not a PLAYER_HEAD.
+     */
+    public ItemBuilder setSkullTexture(String texture) {
+        if (isInvalidItemStack() || getType() != Material.PLAYER_HEAD) return null;
+
+        NBT.modifyComponents(this.itemStack, nbt -> {
+            ReadWriteNBT profileNbt = nbt.getOrCreateCompound("minecraft:profile");
+            profileNbt.setUUID("id", UUID.randomUUID());
+
+            // Retrieve or create the 'properties' list
+            ReadWriteNBTCompoundList propertiesList = profileNbt.getCompoundList("properties");
+
+            // Look for an existing texture compound
+            ReadWriteNBT textureCompound = null;
+            for (ReadWriteNBT compound : propertiesList) {
+                if ("textures".equals(compound.getString("name"))) {
+                    textureCompound = compound;
+                    break;
+                }
+            }
+
+            if (textureCompound != null) {
+                textureCompound.setString("value", texture); // Update the existing texture
+            } else {
+                // Add a new texture compound
+                ReadWriteNBT newTextureCompound = propertiesList.addCompound();
+                newTextureCompound.setString("name", "textures");
+                newTextureCompound.setString("value", texture);
+            }
+        });
+
+        return this;
+    }
+
+    /**
+     * Retrieves the current texture of the skull item.
+     * <p>
+     * This method checks the NBT data of the item for a "textures" property and returns
+     * its value if found.
+     * If the profile or texture is not available, it returns "NONE".
+     * If the item is invalid or not a PLAYER_HEAD, it returns {@code null}.
+     *
+     * @return The texture string of the skull, or "NONE" if no texture is found or if the item is invalid,
+     *         or {@code null} if the item is not a PLAYER_HEAD.
+     */
+    public @Nullable String getSkullTexture() {
+        if (isInvalidItemStack() || getType() != Material.PLAYER_HEAD) return null;
+
+        return NBT.modifyComponents(this.itemStack, nbt -> {
+            ReadWriteNBT profileNbt = nbt.getCompound("minecraft:profile");
+            if (profileNbt == null) return null; // Return null if the profile is missing
+
+            // Get the 'properties' list (no casting needed)
+            ReadWriteNBTCompoundList propertiesList = profileNbt.getCompoundList("properties");
+            if (propertiesList == null || propertiesList.isEmpty()) return null;
+
+            ReadWriteNBT propertiesNbt = propertiesList.get(0);
+            return propertiesNbt.getOrDefault("value", "NONE"); // Return "NONE" if the texture is not found
+        });
+    }
+
+    /**
+     * Removes the texture data from the skull item.
+     * <p>
+     * This method removes the "minecraft:profile" NBT tag, which contains the skull's texture data.
+     * If the item is invalid or not a PLAYER_HEAD, it returns {@code null}.
+     *
+     * @return The current {@link ItemBuilder} instance to allow method chaining,
+     * or {@code null} if the item is invalid or not a PLAYER_HEAD.
+     */
+    public ItemBuilder removeSkullTexture() {
+        if (isInvalidItemStack() || getType() != Material.PLAYER_HEAD) return null;
+
+        NBT.modifyComponents(this.itemStack, nbt -> {
+            // Remove the 'minecraft:profile' key if it exists
+            if (nbt.hasTag("minecraft:profile")) {
+                nbt.removeKey("minecraft:profile");
+            }
+        });
+
+        return this;
+    }
+
+
 
     /**
      * Sets whether the ItemStack is unbreakable.
