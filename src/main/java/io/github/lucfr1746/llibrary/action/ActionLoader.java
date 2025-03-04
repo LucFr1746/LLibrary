@@ -31,11 +31,11 @@ public class ActionLoader {
         Function<String, Action> actionCreator = ACTIONS.get(args[0]);
 
         if (actionCreator != null) {
-            StringBuilder finalMess = new StringBuilder();
+            StringBuilder finalAction = new StringBuilder();
             for (int i = 1; i < args.length; i++) {
-                finalMess.append(args[i]).append(" ");
+                finalAction.append(args[i]).append(" ");
             }
-            return actionCreator.apply(args.length > 1 ? finalMess.toString().stripTrailing() : "");
+            return actionCreator.apply(args.length > 1 ? finalAction.toString().stripTrailing() : "");
         }
 
         return getSoundAction(args);

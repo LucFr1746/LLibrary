@@ -8,9 +8,7 @@ import io.github.lucfr1746.llibrary.action.Action;
 import io.github.lucfr1746.llibrary.action.ActionLoader;
 import io.github.lucfr1746.llibrary.inventory.InventoryBuilder;
 import io.github.lucfr1746.llibrary.inventory.InventoryManager;
-import io.github.lucfr1746.llibrary.requirement.HasPermissionRequirement;
-import io.github.lucfr1746.llibrary.requirement.Requirement;
-import io.github.lucfr1746.llibrary.requirement.RequirementType;
+import io.github.lucfr1746.llibrary.requirement.*;
 import io.github.lucfr1746.llibrary.utils.APIs.LoggerAPI;
 import io.github.lucfr1746.llibrary.utils.PluginLoader;
 import org.bukkit.NamespacedKey;
@@ -77,7 +75,9 @@ public class InventoryLoader extends InventoryBuilder {
             try {
                 RequirementType requirementType = RequirementType.valueOf(requirementSection.getString("type", ""));
                 switch (requirementType) {
-                    case PERMISSION -> addPermissionRequirement(key, requirementSection);
+                    case PERMISSION -> addPermissionRequirement(RequirementType.PERMISSION, key, requirementSection);
+                    case EXP -> addPermissionRequirement(RequirementType.EXP, key, requirementSection);
+                    case LEVEL -> addPermissionRequirement(RequirementType.LEVEL, key, requirementSection);
                     default -> logger.error("Unknown requirement type in " + key + " of menu " + menuId);
                 }
             } catch (IllegalArgumentException e) {
@@ -87,13 +87,27 @@ public class InventoryLoader extends InventoryBuilder {
         });
     }
 
-    private void addPermissionRequirement(String key, ConfigurationSection section) {
-        String permission = section.getString("permission");
-        if (permission != null) {
-            List<Action> denyActions = new ActionLoader().getActions(section.getStringList("deny-action"));
-            openRequirements.put(key, new HasPermissionRequirement(permission).setDenyHandler(denyActions));
-        } else {
-            LLibrary.getLoggerAPI().error("Missing permission value for " + key + " in menu " + menuId);
+    private void addPermissionRequirement(RequirementType type, String key, ConfigurationSection section) {
+        switch (type) {
+            case PERMISSION -> {
+                String permission = section.getString("permission");
+                if (permission != null) {
+                    List<Action> denyActions = new ActionLoader().getActions(section.getStringList("deny-action"));
+                    openRequirements.put(key, new HasPermissionRequirement(permission).setDenyHandler(denyActions));
+                } else {
+                    LLibrary.getLoggerAPI().error("Missing permission value for " + key + " in menu " + menuId);
+                }
+            }
+            case EXP -> {
+                int amount = section.getInt("amount");
+                List<Action> denyActions = new ActionLoader().getActions(section.getStringList("deny-action"));
+                openRequirements.put(key, new HasExpRequirement(amount).setDenyHandler(denyActions));
+            }
+            case LEVEL -> {
+                int amount = section.getInt("amount");
+                List<Action> denyActions = new ActionLoader().getActions(section.getStringList("deny-action"));
+                openRequirements.put(key, new HasLevelRequirement(amount).setDenyHandler(denyActions));
+            }
         }
     }
 

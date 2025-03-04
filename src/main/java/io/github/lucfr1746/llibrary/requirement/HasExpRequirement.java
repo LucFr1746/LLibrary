@@ -12,6 +12,6 @@ public class HasExpRequirement extends Requirement {
 
     @Override
     public boolean evaluate(Player player) {
-        return player.getLevel() >= neededExp;
+        return player.getExp() >= neededExp;
     }
 }

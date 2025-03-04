@@ -163,7 +163,7 @@
             <version>26.0.1</version>
             <scope>compile</scope>
         </dependency>
-        <!-- NBTAPI -->
+        <!-- NBT API -->
         <dependency>
             <groupId>de.tr7zw</groupId>
             <artifactId>item-nbt-api-plugin</artifactId>
