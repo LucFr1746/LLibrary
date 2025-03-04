@@ -1,14 +1,12 @@
 package io.github.lucfr1746.llibrary;
 
 import dev.jorel.commandapi.*;
-import dev.jorel.commandapi.arguments.*;
 import io.github.lucfr1746.llibrary.metrics.bStats;
 import io.github.lucfr1746.llibrary.utils.*;
 import io.github.lucfr1746.llibrary.utils.APIs.LoggerAPI;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -40,9 +38,8 @@ public final class LLibrary extends JavaPlugin {
         audiences = BukkitAudiences.create(this);
         CommandAPI.onEnable();
         new bStats(this, 23768);
-        registerCommands();
         checkIntegrations();
-        new PluginLoader(this).loadPlugin();
+        new PluginLoader(this).enablePlugin();
     }
 
     /**
@@ -50,30 +47,11 @@ public final class LLibrary extends JavaPlugin {
      */
     @Override
     public void onDisable() {
+        new PluginLoader(this).disablePlugin();
         CommandAPI.onDisable();
         if (audiences != null) {
             audiences.close();
         }
-    }
-
-    /**
-     * Registers LLibrary commands using CommandAPI.
-     */
-    private void registerCommands() {
-        new CommandAPICommand("llibrary")
-                .withAliases("llib")
-                .withArguments(new StringArgument("action")
-                        .replaceSuggestions(ArgumentSuggestions.stringsWithTooltips(info ->
-                                new IStringTooltip[]{
-                                        StringTooltip.ofString("reload", "Reload the plugin")
-                                }
-                        )))
-                .executes((sender, args) -> {
-                    sender.sendMessage("Reloading LLibrary...");
-                    new PluginLoader(this).disablePlugin().loadPlugin();
-                    sender.sendMessage(ChatColor.GREEN + "Successfully reloaded LLibrary!");
-                })
-                .register();
     }
 
     /**

@@ -24,17 +24,20 @@ class PluginLoader {
         this.plugin = plugin;
     }
 
-    public PluginLoader loadPlugin() {
+    public void enablePlugin() {
+        registerReloadCommands();
+        loadPlugin();
+    }
+
+    public void loadPlugin() {
         new InventoryManager(this.plugin).load();
-        return this;
     }
 
-    public PluginLoader disablePlugin() {
+    public void disablePlugin() {
         new InventoryManager(this.plugin).disable();
-        return this;
     }
 
-    private void registerCommands() {
+    private void registerReloadCommands() {
         new CommandAPICommand("llibrary")
                 .withAliases("llib")
                 .withArguments(new StringArgument("action")
