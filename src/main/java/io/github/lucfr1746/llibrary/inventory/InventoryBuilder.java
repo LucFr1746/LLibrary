@@ -184,8 +184,13 @@ public abstract class InventoryBuilder implements InventoryHandler {
     public void decorate(Player player) {
         this.inventoryView = menuType.typed().create(player, getTitle());
         this.buttonMap.forEach((slot, button) -> {
-            ItemStack icon = button.getIconCreator().apply(player);
-            this.inventoryView.getTopInventory().setItem(slot, icon);
+            if (button.getViewRequirements().stream().allMatch(req -> req.evaluate(player))) {
+                ItemStack icon = button.getIconCreator().apply(player);
+                this.inventoryView.getTopInventory().setItem(slot, icon);
+            } else {
+                button.getViewRequirements().stream().filter(req -> !req.evaluate(player))
+                        .forEach(req -> req.getDenyHandlers().forEach(handler -> handler.execute(player)));
+            }
         });
     }
 
