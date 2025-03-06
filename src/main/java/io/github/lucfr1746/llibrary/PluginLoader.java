@@ -1,43 +1,89 @@
 package io.github.lucfr1746.llibrary;
 
-import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.IStringTooltip;
 import dev.jorel.commandapi.StringTooltip;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.StringArgument;
-import io.github.lucfr1746.llibrary.inventory.loader.InventoryLoader;
-import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
-import io.github.lucfr1746.llibrary.utils.APIs.FileAPI;
+import io.github.lucfr1746.llibrary.inventory.InventoryManager;
+import io.github.lucfr1746.llibrary.util.helper.Logger;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.bukkit.plugin.RegisteredServiceProvider;
 
 class PluginLoader {
 
     private final LLibrary plugin;
 
+    private final Hooks hooks;
+
+    private final InventoryManager inventoryManager;
+
+    private final Logger logger;
+    private final BukkitAudiences audiences;
+    private Economy economy;
+    private Permission permission;
+
     public PluginLoader(LLibrary plugin) {
         this.plugin = plugin;
+        this.logger = new Logger(this.plugin);
+        this.audiences = BukkitAudiences.create(this.plugin);
+
+        this.hooks = new Hooks();
+        this.hooks.hooking();
+
+        setupEconomy();
+        setupPermission();
+        registerCommands();
+
+        this.inventoryManager = new InventoryManager();
     }
 
-    public void enablePlugin() {
-        registerReloadCommands();
-        loadPlugin();
+    public void enable() {
+        this.inventoryManager.load();
     }
 
-    public void loadPlugin() {
-        new InventoryManager(this.plugin).load();
+    public void disable() {
+        this.inventoryManager.disable();
     }
 
-    public void disablePlugin() {
-        new InventoryManager(this.plugin).disable();
+    public Logger getLogger() {
+        return this.logger;
     }
 
-    private void registerReloadCommands() {
+    public BukkitAudiences getAudiences() {
+        return this.audiences;
+    }
+
+    public Hooks getHooks() {
+        return this.hooks;
+    }
+
+    public Economy getEconomy() {
+        return this.economy;
+    }
+
+    public Permission getPermission() {
+        return this.permission;
+    }
+
+    private void setupEconomy() {
+        RegisteredServiceProvider<Economy> rsp = Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp != null) this.economy = rsp.getProvider();
+        else this.logger.warning("Unable to register Economy API, some features may not be available!");
+    }
+
+    private void setupPermission() {
+        RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
+        if (rsp != null) this.permission = rsp.getProvider();
+        else this.logger.warning("Unable to register Permission API, some features may not be available!");
+    }
+
+    private void registerCommands() {
         new CommandAPICommand("llibrary")
                 .withAliases("llib")
                 .withArguments(new StringArgument("action")
@@ -48,17 +94,17 @@ class PluginLoader {
                         )))
                 .executes((sender, args) -> {
                     boolean isPlayer = sender instanceof Player;
-                    LLibrary.getLoggerAPI().info("Reloading LLibrary...");
+                    LLibrary.getPluginLogger().info("Reloading LLibrary...");
                     if (isPlayer) sender.sendMessage("Reloading LLibrary...");
 
                     Bukkit.getScheduler().runTask(this.plugin, () -> {
                         try {
-                            disablePlugin();
-                            loadPlugin();
-                            LLibrary.getLoggerAPI().success("Successfully reloaded LLibrary!");
+                            disable();
+                            enable();
+                            LLibrary.getPluginLogger().success("Successfully reloaded LLibrary!");
                             if (isPlayer) sender.sendMessage(ChatColor.GREEN + "Successfully reloaded LLibrary!");
                         } catch (Exception e) {
-                            LLibrary.getLoggerAPI().error("There was an error while reloading LLibrary!");
+                            LLibrary.getPluginLogger().error("There was an error while reloading LLibrary!");
                             if (isPlayer) sender.sendMessage(ChatColor.RED + "There was an error while reloading LLibrary!");
                         }
                     });
@@ -66,41 +112,22 @@ class PluginLoader {
                 .register();
     }
 
-    static class InventoryManager {
+    static class Hooks {
 
-        private final LLibrary plugin;
+        private boolean isVault = false;
+        private boolean isPAPI = false;
 
-        private static final List<InventoryLoader> registeredInv = new ArrayList<>();
-
-        public InventoryManager(LLibrary plugin) {
-            this.plugin = plugin;
+        public void hooking() {
+            this.isVault = Bukkit.getPluginManager().isPluginEnabled("Vault");
+            this.isPAPI = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
         }
 
-        public InventoryManager load() {
-            LLibrary.getLoggerAPI().info("Loading ItemBuilder GUI...");
-            registerInv(new ItemBuilderGUI(new FileAPI(this.plugin).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder")));
-            return this;
+        public boolean isVaultEnabled() {
+            return this.isVault;
         }
 
-        public InventoryManager disable() {
-            for (InventoryLoader loader : registeredInv) {
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (player.getOpenInventory() instanceof InventoryLoader)
-                        player.closeInventory();
-                }
-                unregisterInvCMD(loader);
-            }
-            return this;
-        }
-
-        public static void registerInv(InventoryLoader inventoryLoader) {
-            registeredInv.add(inventoryLoader);
-        }
-
-        private void unregisterInvCMD(InventoryLoader inventoryLoader) {
-            for (String cmd : inventoryLoader.getOpenCommands()) {
-                CommandAPI.unregister(cmd);
-            }
+        public boolean isPAPIEnabled() {
+            return this.isPAPI;
         }
     }
 }
