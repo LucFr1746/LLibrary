@@ -1,8 +1,6 @@
 package io.github.lucfr1746.llibrary;
 
-import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.IStringTooltip;
-import dev.jorel.commandapi.StringTooltip;
+import dev.jorel.commandapi.*;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.StringArgument;
 import io.github.lucfr1746.llibrary.inventory.InventoryManager;
@@ -24,14 +22,14 @@ class PluginLoader {
     private final InventoryManager inventoryManager;
 
     private final Logger logger;
-    private final BukkitAudiences audiences;
+    private BukkitAudiences audiences;
     private Economy economy;
     private Permission permission;
 
     public PluginLoader(LLibrary plugin) {
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(plugin).silentLogs(true));
         this.plugin = plugin;
         this.logger = new Logger(this.plugin);
-        this.audiences = BukkitAudiences.create(this.plugin);
 
         this.hooks = new Hooks();
         this.hooks.hooking();
@@ -44,6 +42,8 @@ class PluginLoader {
     }
 
     public void enable() {
+        CommandAPI.onEnable();
+        this.audiences = BukkitAudiences.create(this.plugin);
         this.inventoryManager.load();
     }
 
@@ -72,12 +72,20 @@ class PluginLoader {
     }
 
     private void setupEconomy() {
+        if (!this.hooks.isVault) {
+            this.logger.warning("Unable to register Vault's Economy API, some features may not be available!");
+            return;
+        }
         RegisteredServiceProvider<Economy> rsp = Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp != null) this.economy = rsp.getProvider();
         else this.logger.warning("Unable to register Economy API, some features may not be available!");
     }
 
     private void setupPermission() {
+        if (!this.hooks.isVault) {
+            this.logger.warning("Unable to register Vault's Permission API, some features may not be available!");
+            return;
+        }
         RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
         if (rsp != null) this.permission = rsp.getProvider();
         else this.logger.warning("Unable to register Permission API, some features may not be available!");
@@ -105,6 +113,7 @@ class PluginLoader {
                             if (isPlayer) sender.sendMessage(ChatColor.GREEN + "Successfully reloaded LLibrary!");
                         } catch (Exception e) {
                             LLibrary.getPluginLogger().error("There was an error while reloading LLibrary!");
+                            LLibrary.getPluginLogger().error(e.getMessage());
                             if (isPlayer) sender.sendMessage(ChatColor.RED + "There was an error while reloading LLibrary!");
                         }
                     });
