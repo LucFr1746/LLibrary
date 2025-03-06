@@ -1,7 +1,7 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
 import io.github.lucfr1746.llibrary.LLibrary;
-import io.github.lucfr1746.llibrary.utils.Hooks;
+import io.github.lucfr1746.llibrary.action.Action;
 import org.bukkit.entity.Player;
 
 public class GiveMoneyAction extends Action {
@@ -21,8 +21,8 @@ public class GiveMoneyAction extends Action {
 
     @Override
     public void execute(Player target) {
-        if (!Hooks.isVault()) {
-            throw new IllegalStateException("There is no economy API hooked!");
+        if (LLibrary.getEconomy() == null) {
+            throw new IllegalStateException("There is no Economy API hooked!");
         }
         LLibrary.getEconomy().depositPlayer(target, this.amount);
     }

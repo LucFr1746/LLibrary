@@ -1,6 +1,7 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
 import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.action.Action;
 import org.bukkit.entity.Player;
 
 public class TakePermissionAction extends Action {
@@ -17,6 +18,9 @@ public class TakePermissionAction extends Action {
 
     @Override
     public void execute(Player target) {
-        LLibrary.getPermissions().playerRemove(target, this.permission);
+        if (LLibrary.getPermission() == null) {
+            throw new IllegalStateException("There is no Permission API hooked!");
+        }
+        LLibrary.getPermission().playerRemove(target, this.permission);
     }
 }

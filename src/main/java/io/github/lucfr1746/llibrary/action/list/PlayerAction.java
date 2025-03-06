@@ -1,5 +1,6 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
+import io.github.lucfr1746.llibrary.action.Action;
 import org.bukkit.entity.Player;
 
 public class PlayerAction extends Action {

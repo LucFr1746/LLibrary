@@ -1,18 +1,16 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
 import io.github.lucfr1746.llibrary.LLibrary;
-import io.github.lucfr1746.llibrary.utils.Hooks;
+import io.github.lucfr1746.llibrary.action.Action;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-public class BroadcastAction extends Action {
+public class MiniMessageAction extends Action {
 
-    public String message;
+    private String message;
 
-    public BroadcastAction(String message) {
+    public MiniMessageAction(String message) {
         this.message = message;
     }
 
@@ -22,9 +20,9 @@ public class BroadcastAction extends Action {
 
     @Override
     public void execute(Player target) {
-        if (Hooks.isPAPIEnabled()) {
+        if (LLibrary.isPlaceholderAPIEnabled()) {
             this.message = PlaceholderAPI.setPlaceholders(target, this.message);
         }
-        LLibrary.getInstance().audiences().player(target).sendMessage(MiniMessage.miniMessage().deserialize(this.message));
+        LLibrary.getAudiences().player(target).sendMessage(MiniMessage.miniMessage().deserialize(this.message));
     }
 }

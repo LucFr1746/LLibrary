@@ -1,6 +1,7 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
-import io.github.lucfr1746.llibrary.utils.Hooks;
+import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.action.Action;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ public class ConsoleAction extends Action {
 
     @Override
     public void execute(Player target) {
-        if (Hooks.isPAPIEnabled()) {
+        if (LLibrary.isPlaceholderAPIEnabled()) {
             this.command = PlaceholderAPI.setPlaceholders(target, this.command);
         }
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), this.command);

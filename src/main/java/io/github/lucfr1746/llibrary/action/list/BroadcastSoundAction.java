@@ -1,15 +1,17 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
+import io.github.lucfr1746.llibrary.action.Action;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-public class BroadcastWorldSoundAction extends Action {
+public class BroadcastSoundAction extends Action {
 
     private final Sound sound;
     private final float volume;
     private final float pitch;
 
-    public BroadcastWorldSoundAction(Sound sound, float volume, float pitch) {
+    public BroadcastSoundAction(Sound sound, float volume, float pitch) {
         this.sound = sound;
         this.volume = volume;
         this.pitch = pitch;
@@ -29,7 +31,7 @@ public class BroadcastWorldSoundAction extends Action {
 
     @Override
     public void execute(Player target) {
-        for (final Player broadcastTarget : target.getWorld().getPlayers()) {
+        for (final Player broadcastTarget : Bukkit.getOnlinePlayers()) {
             broadcastTarget.playSound(broadcastTarget.getLocation(), this.sound, this.volume, this.pitch);
         }
     }

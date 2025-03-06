@@ -1,5 +1,6 @@
-package io.github.lucfr1746.llibrary.action;
+package io.github.lucfr1746.llibrary.action.list;
 
+import io.github.lucfr1746.llibrary.action.Action;
 import org.bukkit.entity.Player;
 
 public class TakeExpAction extends Action {
@@ -19,6 +20,6 @@ public class TakeExpAction extends Action {
 
     @Override
     public void execute(Player target) {
-        target.setExp(Math.max(0, target.getExp() - this.amount));
+        target.setTotalExperience(Math.max(0, target.getTotalExperience() - this.amount));
     }
 }
