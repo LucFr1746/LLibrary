@@ -12,29 +12,29 @@ public abstract class Requirement {
     private List<Action> acceptHandler;
     private List<Action> denyHandler;
 
-    public List<Action> getDenyHandlers() {
-        return this.denyHandler;
-    }
-
-    public Requirement setDenyHandler(List<Action> denyHandlers) {
-        this.denyHandler = denyHandlers;
+    public Requirement setAcceptHandler(List<Action> acceptHandler) {
+        this.acceptHandler = acceptHandler;
         return this;
     }
 
-    public boolean hasDenyHandler() {
-        return this.denyHandler != null && !this.denyHandler.isEmpty();
+    public Requirement setDenyHandler(List<Action> denyHandler) {
+        this.denyHandler = denyHandler;
+        return this;
     }
 
-    public List<Action> getAcceptHandlers() {
+    public List<Action> getAcceptHandler() {
         return this.acceptHandler;
     }
 
-    public Requirement setSuccessHandler(List<Action> acceptHandlers) {
-        this.acceptHandler = acceptHandlers;
-        return this;
+    public List<Action> getDenyHandler() {
+        return this.denyHandler;
     }
 
     public boolean hasAcceptHandler() {
-        return this.acceptHandler != null && !this.acceptHandler.isEmpty();
+        return this.acceptHandler!= null &&! this.acceptHandler.isEmpty();
+    }
+
+    public boolean hasDenyHandler() {
+        return this.denyHandler!= null &&! this.denyHandler.isEmpty();
     }
 }

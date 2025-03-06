@@ -3,60 +3,82 @@ package io.github.lucfr1746.llibrary.requirement;
 import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.action.Action;
 import io.github.lucfr1746.llibrary.action.ActionLoader;
+import io.github.lucfr1746.llibrary.requirement.list.HasExpRequirement;
+import io.github.lucfr1746.llibrary.requirement.list.HasLevelRequirement;
+import io.github.lucfr1746.llibrary.requirement.list.HasPermissionRequirement;
 import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class RequirementLoader {
 
+    private final ActionLoader actionLoader = new ActionLoader();
+    private final Map<String, Function<Object, Requirement>> requirementFactories = new HashMap<>();
+
+    public RequirementLoader() {
+        registerRequirementType("PERMISSION", perm -> new HasPermissionRequirement((String) perm));
+        registerRequirementType("EXP", amount -> new HasExpRequirement((int) amount));
+        registerRequirementType("LEVEL", amount -> new HasLevelRequirement((int) amount));
+    }
+
+    public void registerRequirementType(String name, Function<Object, Requirement> factory) {
+        requirementFactories.put(name.toUpperCase(), factory);
+    }
+
     public List<Requirement> getRequirements(@Nullable ConfigurationSection checkingSection) {
-        List<Requirement> requirements = new ArrayList<>();
-        if (checkingSection == null) return requirements;
+        if (checkingSection == null) return Collections.emptyList();
 
-        for (String key : checkingSection.getKeys(false)) {
-            ConfigurationSection requirementSection = checkingSection.getConfigurationSection(key);
-            if (requirementSection == null) {
-                LLibrary.getLoggerAPI().error("Failed to load requirement section: " + key + ". Skipping...");
-                continue;
-            }
+        return checkingSection.getKeys(false).stream()
+                .map(key -> loadRequirement(checkingSection.getConfigurationSection(key), key))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 
-            String typeString = requirementSection.getString("type", "").toUpperCase();
-            RequirementType requirementType;
-            try {
-                requirementType = RequirementType.valueOf(typeString);
-            } catch (IllegalArgumentException exception) {
-                LLibrary.getLoggerAPI().error("Invalid or missing requirement type: " + typeString + " in section: " + key + ". Skipping...");
-                continue;
-            }
+    private Requirement loadRequirement(ConfigurationSection section, String key) {
+        if (section == null) return null;
 
-            List<Action> denyActions = new ActionLoader().getActions(requirementSection.getStringList("deny-action"));
-
-            switch (requirementType) {
-                case PERMISSION -> {
-                    String permission = requirementSection.getString("permission");
-                    if (permission == null || permission.isBlank()) {
-                        LLibrary.getLoggerAPI().error("Missing 'permission' value in section: " + key + ". Skipping...");
-                        continue;
-                    }
-                    requirements.add(new HasPermissionRequirement(permission).setDenyHandler(denyActions));
-                }
-                case EXP, LEVEL -> {
-                    String amountString = requirementSection.getString("amount", "");
-                    try {
-                        int amount = Integer.parseInt(amountString);
-                        Requirement requirement = (requirementType == RequirementType.EXP)
-                                ? new HasExpRequirement(amount)
-                                : new HasLevelRequirement(amount);
-                        requirements.add(requirement.setDenyHandler(denyActions));
-                    } catch (NumberFormatException exception) {
-                        LLibrary.getLoggerAPI().error("Invalid 'amount' value: " + amountString + " in section: " + key + ". Skipping...");
-                    }
-                }
-            }
+        String typeString = Optional.ofNullable(section.getString("type")).orElse("").toUpperCase();
+        Function<Object, Requirement> factory = requirementFactories.get(typeString);
+        if (factory == null) {
+            LLibrary.getPluginLogger().error("Invalid or missing requirement type: " + typeString + " in section: " + key + ". Skipping...");
+            return null;
         }
 
-        return requirements;
+        List<Action> denyActions = loadActions(section, "deny-action");
+        List<Action> acceptActions = loadActions(section, "accept-action");
+
+        try {
+            Object arg = switch (typeString) {
+                case "PERMISSION" -> section.getString("permission");
+                case "EXP", "LEVEL" -> parseAmount(section.getString("amount"), key);
+                default -> null;
+            };
+
+            if (arg == null) throw new IllegalArgumentException("Missing or invalid argument for requirement type: " + typeString + " in section: " + key);
+
+            Requirement requirement = factory.apply(arg);
+            return requirement.setDenyHandler(denyActions).setAcceptHandler(acceptActions);
+        } catch (IllegalArgumentException e) {
+            LLibrary.getPluginLogger().error(e.getMessage());
+            return null;
+        }
+    }
+
+    private List<Action> loadActions(ConfigurationSection section, String path) {
+        Object actionData = section.get(path);
+        if (actionData instanceof String) return List.of(actionLoader.getAction((String) actionData));
+        if (actionData instanceof List<?>) return actionLoader.getActions(section.getStringList(path));
+        return Collections.emptyList();
+    }
+
+    private int parseAmount(String amountString, String key) {
+        try {
+            return Integer.parseInt(Optional.ofNullable(amountString).orElse(""));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid 'amount' value: " + amountString + " in section: " + key + ". Skipping...");
+        }
     }
 }

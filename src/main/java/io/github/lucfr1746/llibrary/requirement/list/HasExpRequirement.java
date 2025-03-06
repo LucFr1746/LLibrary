@@ -1,5 +1,6 @@
-package io.github.lucfr1746.llibrary.requirement;
+package io.github.lucfr1746.llibrary.requirement.list;
 
+import io.github.lucfr1746.llibrary.requirement.Requirement;
 import org.bukkit.entity.Player;
 
 public class HasExpRequirement extends Requirement {
