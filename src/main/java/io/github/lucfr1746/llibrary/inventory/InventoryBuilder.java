@@ -1,277 +1,272 @@
 package io.github.lucfr1746.llibrary.inventory;
 
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPICommand;
+import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.action.Action;
+import io.github.lucfr1746.llibrary.action.ActionLoader;
+import io.github.lucfr1746.llibrary.requirement.Requirement;
+import io.github.lucfr1746.llibrary.requirement.RequirementLoader;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.InventoryView;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.MenuType;
+import org.bukkit.inventory.PlayerInventory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-/**
- * A builder class that manages an inventory GUI. This class is responsible for
- * creating and updating inventories with buttons and event handling, including
- * locking interactions based on the specified {@link LockMode}.
- * <p>
- * The {@link InventoryBuilder} class allows customization of the inventory layout,
- * adding buttons, handling clicks, and setting lock modes to control interaction
- * with the inventory.
- * </p>
- */
-public abstract class InventoryBuilder implements InventoryHandler {
+public class InventoryBuilder implements InventoryHandler {
 
-    /**
-     * Enumeration that defines different lock modes for the inventory interaction.
-     * <p>
-     * The {@link LockMode} enum provides various lock states that control how the player
-     * can interact with the inventory. Each lock mode defines whether the player is allowed
-     * to interact with the inventory's GUI, their player inventory, or neither.
-     * </p>
-     */
     public enum LockMode {
-
-        /**
-         * Prevents all interaction with the inventory, both the GUI and the player inventory.
-         * <p>
-         * When this lock mode is active, players cannot interact with the inventory in any way.
-         * </p>
-         */
         ALL,
-
-        /**
-         * Prevents interaction with the GUI, allowing players to interact only with their player inventory.
-         * <p>
-         * When this lock mode is active, players cannot modify the items in the GUI but can still interact
-         * with their own inventory (e.g., pick up or move items from/to their inventory).
-         * </p>
-         */
         GUI,
-
-        /**
-         * Prevents interaction with the player inventory, allowing players to interact only with the GUI.
-         * <p>
-         * When this lock mode is active, players can interact with the inventory's GUI but cannot modify
-         * their own player inventory (e.g., they cannot pick up or move items in their player inventory).
-         * </p>
-         */
         PLAYER,
+        NONE
     }
 
-    /**
-     * Constructs an instance of the {@link InventoryBuilder}.
-     * <p>
-     * This constructor is used to create an {@link InventoryBuilder} object, which can then be
-     * customized by setting the title, lock mode, and adding buttons to build a dynamic inventory.
-     * </p>
-     */
-    public InventoryBuilder() {
-    }
+    private String id = UUID.randomUUID().toString();
 
-    /**
-     * A map that associates inventory slot positions with {@link InventoryButton}s.
-     */
-    private final Map<Integer, InventoryButton> buttonMap = new HashMap<>();
-
-    /**
-     * The lock mode of the inventory, which controls player interaction.
-     */
-    private LockMode lockMode = LockMode.ALL;
-
-    /**
-     * The title of the inventory.
-     */
     private String title = "";
 
-    /**
-     * The type of the inventory, defining its size and layout.
-     */
     private MenuType menuType = MenuType.GENERIC_9X3;
 
-    /**
-     * The view of the inventory, which holds the top inventory and allows for item manipulation.
-     */
+    private LockMode lockMode = LockMode.ALL;
+
     private InventoryView inventoryView;
 
-    /**
-     * Gets the inventory associated with this builder.
-     *
-     * @return The top inventory associated with the current inventory view.
-     */
-    public InventoryView getInventoryView() {
-        return this.inventoryView;
+    private final Map<Integer, TreeSet<InventoryButton>> buttonMap = new HashMap<>();
+
+    private final List<Requirement> openRequirements = new ArrayList<>();
+
+    private final List<Action> openActions = new ArrayList<>();
+
+    private final List<String> openCommands = new ArrayList<>();
+
+    public void setId(String id) {
+        this.id = id;
     }
 
-    /**
-     * Sets the menu type (size/layout) of the inventory.
-     *
-     * @param menuType The {@link MenuType} to be set for the inventory.
-     */
-    public void setMenuType(MenuType menuType) {
-        this.menuType = menuType;
-    }
-
-    /**
-     * Gets the menu type (size/layout) of the inventory.
-     *
-     * @return The current {@link MenuType}.
-     */
-    public MenuType getMenuType() {
-        return this.menuType;
-    }
-
-    /**
-     * Sets the title of the inventory.
-     *
-     * @param title The title to be set for the inventory.
-     */
     public void setTitle(String title) {
         this.title = title;
     }
 
-    /**
-     * Gets the title of the inventory.
-     *
-     * @return The current title of the inventory.
-     */
-    public String getTitle() {
-        return this.title;
+    public void setMenuType(MenuType menuType) {
+        this.menuType = menuType;
     }
 
-    /**
-     * Sets the lock mode of the inventory.
-     *
-     * @param lockMode The lock mode to be set.
-     */
     public void setLockMode(LockMode lockMode) {
         this.lockMode = lockMode;
     }
 
-    /**
-     * Gets the current lock mode of the inventory.
-     *
-     * @return The current lock mode.
-     */
+    public void setButtonMap(Map<Integer, TreeSet<InventoryButton>> buttonMap) {
+        this.buttonMap.clear();
+        this.buttonMap.putAll(buttonMap);
+    }
+
+    public void setOpenRequirements(List<Requirement> openRequirements) {
+        this.openRequirements.clear();
+        this.openRequirements.addAll(openRequirements);
+    }
+
+    public void setOpenActions(List<Action> openActions) {
+        this.openActions.clear();
+        this.openActions.addAll(openActions);
+    }
+
+    public void setOpenCommands(List<String> openCommands) {
+        if (!getOpenCommands().isEmpty()) {
+            Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> {
+                for (String cmd : getOpenCommands()) {
+                    CommandAPI.unregister(cmd);
+                }
+            });
+        }
+        this.openCommands.clear();
+        this.openCommands.addAll(openCommands);
+        if (this.openCommands.isEmpty()) return;
+        Bukkit.getScheduler().runTask(LLibrary.getInstance(),
+                () -> new CommandAPICommand(openCommands.getFirst())
+                        .withAliases(openCommands.stream().skip(1).toArray(String[]::new))
+                        .executesPlayer((player, args) -> {
+                            if (openRequirements.stream().allMatch(req -> req.evaluate(player))) {
+                                new InventoryManager().openGUI(this, player);
+                            } else {
+                                openRequirements.stream().filter(req -> !req.evaluate(player))
+                                        .forEach(req -> req.getDenyHandler().forEach(handler -> handler.execute(player)));
+                            }
+                        }).register());
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public String getTitle() {
+        return this.title;
+    }
+
+    public MenuType getMenuType() {
+        return this.menuType;
+    }
+
     public LockMode getLockMode() {
         return this.lockMode;
     }
 
-    /**
-     * Adds a button to the inventory at the specified slot.
-     *
-     * @param slot The slot index where the button should be placed.
-     * @param button The {@link InventoryButton} to be added.
-     */
+    public @Nullable InventoryView getInventoryView() {
+        return this.inventoryView;
+    }
+
+    public Map<Integer, TreeSet<InventoryButton>> getButtonMap() {
+        return Collections.unmodifiableMap(this.buttonMap);
+    }
+
+    public TreeSet<InventoryButton> getSlotButtons(int slot) {
+        return this.buttonMap.get(slot);
+    }
+
+    public List<Requirement> getOpenRequirements() {
+        return Collections.unmodifiableList(this.openRequirements);
+    }
+
+    public List<Action> getOpenActions() {
+        return Collections.unmodifiableList(this.openActions);
+    }
+
+    public List<String> getOpenCommands() {
+        return Collections.unmodifiableList(this.openCommands);
+    }
+
     public void addButton(int slot, InventoryButton button) {
-        this.buttonMap.put(slot, button);
+        buttonMap.computeIfAbsent(slot,
+                        k -> new TreeSet<>(Comparator.comparing(InventoryButton::getPriority).reversed()))
+                .removeIf(b -> b.getPriority() == button.getPriority());
+        buttonMap.get(slot).add(button);
     }
 
-    /**
-     * Gets a map of all buttons added to this inventory builder.
-     *
-     * @return A map of buttons associated with their slot positions.
-     */
-    public Map<Integer, InventoryButton> getButtonMap() {
-        return this.buttonMap;
+    public void refreshButton(Player player, int slot, InventoryButton button) {
+        addButton(slot, button);
+        updateButton(player, slot);
     }
 
-    /**
-     * Decorates the inventory view by setting the icons of all buttons.
-     * This method creates the inventory and assigns the icons for each button.
-     *
-     * @param player The player for whom the inventory is being decorated.
-     */
+    public void refreshButtons(Player player, Map<Integer, TreeSet<InventoryButton>> newButtonMap) {
+        newButtonMap.forEach((slot, buttons) ->
+                buttonMap.computeIfAbsent(slot,
+                                k -> new TreeSet<>(Comparator.comparing(InventoryButton::getPriority).reversed()))
+                        .addAll(buttons)
+        );
+        updateButtons(player);
+    }
+
     public void decorate(Player player) {
         this.inventoryView = menuType.typed().create(player, getTitle());
-        this.buttonMap.forEach((slot, button) -> {
-            if (button.getViewRequirements().stream().allMatch(req -> req.evaluate(player))) {
-                ItemStack icon = button.getIconCreator().apply(player);
-                this.inventoryView.getTopInventory().setItem(slot, icon);
-            } else {
-                button.getViewRequirements().stream().filter(req -> !req.evaluate(player))
-                        .forEach(req -> req.getDenyHandlers().forEach(handler -> handler.execute(player)));
-            }
-        });
+        updateButtons(player);
     }
 
-    /**
-     * Updates the button at the specified slot and re-decorates the inventory.
-     *
-     * @param player The player for whom the button should be updated.
-     * @param slot The slot index of the button to update.
-     * @param button The new {@link InventoryButton} to replace the old button.
-     */
-    public void updateButton(Player player, int slot, InventoryButton button) {
-        this.buttonMap.put(slot, button);
-        this.decorate(player);
+    private void updateButtons(Player player) {
+        buttonMap.forEach((slot, buttons) -> updateButton(player, slot));
     }
 
-    /**
-     * Updates multiple buttons at once and re-decorates the inventory.
-     *
-     * @param player The player for whom the buttons should be updated.
-     * @param buttons A map of buttons to be updated, where the key is the slot index.
-     */
-    public void updateButtons(Player player, Map<Integer, InventoryButton> buttons) {
-        this.buttonMap.putAll(buttons);
-        this.decorate(player);
+    private void updateButton(Player player, int slot) {
+        buttonMap.getOrDefault(slot, new TreeSet<>(Comparator.comparing(InventoryButton::getPriority).reversed()))
+                .stream()
+                .filter(button -> button.getViewRequirements().stream().allMatch(req -> req.evaluate(player)))
+                .findFirst()
+                .ifPresent(button -> {
+                    ItemStack icon = button.getIconCreator().apply(player);
+                    this.inventoryView.getTopInventory().setItem(slot, icon);
+                });
     }
 
-    /**
-     * Handles the {@link InventoryClickEvent} for this inventory.
-     * This method checks the lock mode and cancels the event if necessary.
-     *
-     * @param event The {@link InventoryClickEvent} to handle.
-     */
     @Override
     public void onClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
+
+        boolean isPlayerInventory = event.getClickedInventory() instanceof PlayerInventory;
+
         switch (this.lockMode) {
-            case ALL -> {
-                event.setCancelled(true);
-                if (event.getClickedInventory() instanceof PlayerInventory) {
-                    return;
-                }
-            }
-            case GUI -> {
-                if (event.getClickedInventory() instanceof PlayerInventory) {
-                    return;
-                }
-                event.setCancelled(true);
-            }
-            case PLAYER -> {
-                if (!(event.getClickedInventory() instanceof PlayerInventory)) {
-                    return;
-                }
-                event.setCancelled(true);
-            }
+            case GUI -> event.setCancelled(!isPlayerInventory);
+            case PLAYER -> event.setCancelled(isPlayerInventory);
+            case NONE -> event.setCancelled(false);
             default -> event.setCancelled(true);
         }
 
         int slot = event.getRawSlot();
-        InventoryButton button = this.buttonMap.get(slot);
-        if (button != null && button.getEventConsumer() != null) {
-            button.getEventConsumer().accept(event);
+        TreeSet<InventoryButton> buttons = buttonMap.get(slot);
+        if (buttons == null || buttons.isEmpty()) return;
+
+        buttons.stream()
+                .filter(button -> button.getViewRequirements().stream()
+                        .allMatch(req -> req.evaluate((Player) event.getWhoClicked())))
+                .findFirst()
+                .ifPresent(button -> {
+                    if (button.getEventConsumer() != null) {
+                        button.getEventConsumer().accept(event);
+                    }
+                });
+    }
+
+
+    @Override
+    public void onOpen(InventoryOpenEvent event) {
+        for (Action action : getOpenActions()) {
+            action.execute((Player) event.getPlayer());
         }
     }
 
-    /**
-     * Handles the {@link InventoryOpenEvent} for this inventory.
-     * This method decorates the inventory for the player when it is opened.
-     *
-     * @param event The {@link InventoryOpenEvent} to handle.
-     */
-    @Override
-    public void onOpen(InventoryOpenEvent event) {
-    }
-
-    /**
-     * Handles the {@link InventoryCloseEvent} for this inventory.
-     * This method can be used to clean up when the inventory is closed.
-     *
-     * @param event The {@link InventoryCloseEvent} to handle.
-     */
     @Override
     public void onClose(InventoryCloseEvent event) {
+
+    }
+
+    public void loadFromFile(@Nullable FileConfiguration fileConfiguration) {
+        if (fileConfiguration == null)
+            throw new IllegalArgumentException("The file must no be null!");
+        loadID(fileConfiguration);
+
+        setOpenRequirements(new RequirementLoader().getRequirements(fileConfiguration.getConfigurationSection("open-requirement")));
+        setOpenActions(new ActionLoader().getActions(fileConfiguration.getStringList("open-action")));
+
+        loadOpenCommands(fileConfiguration);
+        loadMenuProperties(fileConfiguration);
+    }
+
+    private void loadID(@NotNull FileConfiguration fileConfiguration) {
+        String id = fileConfiguration.getString("menu-id");
+        if (id == null) {
+            LLibrary.getPluginLogger().error("Missing menu-id in " + fileConfiguration.getName() + ". Skipping...");
+        }
+        setId(id);
+    }
+
+    private void loadOpenCommands(@NotNull FileConfiguration fileConfiguration) {
+        List<String> commands = new ArrayList<>();
+        Optional.ofNullable(fileConfiguration.get("open-command")).ifPresent(cmd -> {
+            if (cmd instanceof String) commands.add((String) cmd);
+            else commands.addAll(fileConfiguration.getStringList("open-command"));
+        });
+
+        setOpenCommands(commands);
+    }
+
+    private void loadMenuProperties(@NotNull FileConfiguration fileConfiguration) {
+        Optional.ofNullable(fileConfiguration.getString("menu-title")).ifPresent(this::setTitle);
+        Optional.ofNullable(fileConfiguration.getString("menu-type")).ifPresent(type ->
+                setMenuType(Registry.MENU.get(new NamespacedKey(NamespacedKey.MINECRAFT, type.toLowerCase())))
+        );
+        loadItems();
+    }
+
+    private void loadItems() {
+
     }
 }
