@@ -19,11 +19,15 @@ public final class LLibrary extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        if (pluginLoader == null)
+            pluginLoader = new PluginLoader(this);
         pluginLoader.enable();
     }
 
     @Override
     public void onDisable() {
+        if (pluginLoader == null)
+            pluginLoader = new PluginLoader(this);
         pluginLoader.disable();
     }
 
