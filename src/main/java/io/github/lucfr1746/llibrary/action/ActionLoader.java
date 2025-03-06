@@ -55,11 +55,11 @@ public class ActionLoader {
 
     private Action parseSoundAction(String type, String input) {
         String[] args = input.split(" ");
-        if (args.length < 2) return null;
+        if (args.length < 1) return null;
         try {
-            Sound sound = Sound.valueOf(args[1].toUpperCase());
-            float volume = args.length > 2 ? parseFloatOrDefault(args[2]) : 1;
-            float pitch = args.length > 3 ? parseFloatOrDefault(args[3]) : 1;
+            Sound sound = Sound.valueOf(args[0].toUpperCase());
+            float volume = args.length > 1 ? parseFloatOrDefault(args[1]) : 1;
+            float pitch = args.length > 2 ? parseFloatOrDefault(args[2]) : 1;
 
             return switch (type) {
                 case "[broadcast-sound]" -> new BroadcastSoundAction(sound, volume, pitch);
