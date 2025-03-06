@@ -22,15 +22,15 @@ public class Logger {
     }
 
     public void info(String message) {
-        this.plugin.getLogger().log(Level.INFO, getPluginPrefix() + message);
+        this.plugin.getLogger().log(Level.INFO, message);
     }
 
     public void warning(String message) {
-        this.plugin.getLogger().log(Level.WARNING, getPluginPrefix() + message);
+        this.plugin.getLogger().log(Level.WARNING, message);
     }
 
     public void error(String message) {
-        this.plugin.getLogger().log(Level.SEVERE, getPluginPrefix() + message);
+        this.plugin.getLogger().log(Level.SEVERE, message);
     }
 
     public void success(String message) {
