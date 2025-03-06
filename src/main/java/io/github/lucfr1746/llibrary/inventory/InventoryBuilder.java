@@ -243,7 +243,7 @@ public class InventoryBuilder implements InventoryHandler {
     private void loadID(@NotNull FileConfiguration fileConfiguration) {
         String id = fileConfiguration.getString("menu-id");
         if (id == null) {
-            LLibrary.getPluginLogger().error("Missing menu-id in " + fileConfiguration.getName() + ". Skipping...");
+            LLibrary.getPluginLogger().error("Missing menu-id which is required. Skipping...");
         }
         setId(id);
     }
