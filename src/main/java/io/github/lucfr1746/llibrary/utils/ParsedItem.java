@@ -1,7 +1,6 @@
 package io.github.lucfr1746.llibrary.utils;
 
 import io.github.lucfr1746.llibrary.LLibrary;
-import io.github.lucfr1746.llibrary.utils.APIs.LoggerAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.Material;
@@ -981,7 +980,7 @@ public class ParsedItem {
                     .append(":").append(writeComponent(val)).append(","));
             return text.substring(0, text.length() - 1) + "}";
         }
-        new LoggerAPI(LLibrary.getInstance()).info(value.getClass().getSimpleName() + " " + value);
+        LLibrary.getPluginLogger().info(value.getClass().getSimpleName() + " " + value);
         throw new RuntimeException();
     }
 
