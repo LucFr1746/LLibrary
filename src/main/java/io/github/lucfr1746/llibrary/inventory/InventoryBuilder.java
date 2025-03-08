@@ -5,11 +5,14 @@ import dev.jorel.commandapi.CommandAPICommand;
 import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.action.Action;
 import io.github.lucfr1746.llibrary.action.ActionLoader;
+import io.github.lucfr1746.llibrary.itemstack.ItemBuilder;
 import io.github.lucfr1746.llibrary.requirement.Requirement;
 import io.github.lucfr1746.llibrary.requirement.RequirementLoader;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -233,8 +236,21 @@ public class InventoryBuilder implements InventoryHandler {
             throw new IllegalArgumentException("The file must no be null!");
         loadID(fileConfiguration);
 
-        setOpenRequirements(new RequirementLoader().getRequirements(fileConfiguration.getConfigurationSection("open-requirement")));
-        setOpenActions(new ActionLoader().getActions(fileConfiguration.getStringList("open-action")));
+        List<Requirement> requirements;
+        if (fileConfiguration.getConfigurationSection("open-requirement") == null) {
+            requirements = new ArrayList<>();
+        } else {
+            requirements = new RequirementLoader().getRequirements(fileConfiguration.getConfigurationSection("open-requirement"));
+        }
+        setOpenRequirements(requirements);
+
+        List<Action> actions;
+        if (fileConfiguration.getConfigurationSection("open-action") == null) {
+            actions = new ArrayList<>();
+        } else {
+            actions = new ActionLoader().getActions(fileConfiguration.getStringList("open-action"));
+        }
+        setOpenActions(actions);
 
         loadOpenCommands(fileConfiguration);
         loadMenuProperties(fileConfiguration);
@@ -263,10 +279,52 @@ public class InventoryBuilder implements InventoryHandler {
         Optional.ofNullable(fileConfiguration.getString("menu-type")).ifPresent(type ->
                 setMenuType(Registry.MENU.get(new NamespacedKey(NamespacedKey.MINECRAFT, type.toLowerCase())))
         );
-        loadItems();
+        loadItems(fileConfiguration);
     }
 
-    private void loadItems() {
+    private void loadItems(@NotNull FileConfiguration fileConfiguration) {
+        ConfigurationSection items = fileConfiguration.getConfigurationSection("items");
+        if (items == null) return;
 
+        for (String key : items.getKeys(false)) {
+            ConfigurationSection item = Objects.requireNonNull(items.getConfigurationSection(key));
+
+            Material material;
+            try {
+                material = Material.valueOf(item.getString("material"));
+            } catch (IllegalArgumentException e) {
+                LLibrary.getPluginLogger().error("There is no material named: " + item.getString("material") + ". Skipping this item...");
+                continue;
+            } catch (NullPointerException e) {
+                LLibrary.getPluginLogger().error("Missing material for item: " + key + ". Skipping this item...");
+                continue;
+            }
+
+            List<Integer> slots = new ArrayList<>();
+            if (item.getIntegerList("slot").isEmpty()) {
+                LLibrary.getPluginLogger().error("Missing slot for item: " + key + ". Skipping this item...");
+                continue;
+            } else {
+                slots.addAll(item.getIntegerList("slot"));
+            }
+
+            List<Requirement> requirements;
+            if (item.getConfigurationSection("requirements") == null) {
+                requirements = new ArrayList<>();
+            } else {
+                requirements = new RequirementLoader().getRequirements(item.getConfigurationSection("requirements"));
+            }
+
+            InventoryButton button = new InventoryButton()
+                    .id(key)
+                    .priority(item.getInt("priority", 0))
+                    .viewRequirements(requirements)
+                    .creator(player -> {
+                        ItemBuilder itemBuilder = new ItemBuilder(material);
+
+                        return itemBuilder.build();
+                    });
+            slots.forEach(slot -> addButton(slot, button));
+        }
     }
 }
