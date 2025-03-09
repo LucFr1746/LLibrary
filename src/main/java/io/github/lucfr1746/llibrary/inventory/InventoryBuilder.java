@@ -125,7 +125,7 @@ public class InventoryBuilder implements InventoryHandler {
         return this.lockMode;
     }
 
-    public @Nullable InventoryView getInventoryView() {
+    public @NotNull InventoryView getInventoryView() {
         return this.inventoryView;
     }
 
