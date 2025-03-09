@@ -322,13 +322,24 @@ public class InventoryBuilder implements InventoryHandler {
                 requirements = new RequirementLoader().getRequirements(item.getConfigurationSection("requirements"));
             }
 
+            String displayName = item.getString("display-name", "");
+            List<String> lores = new ArrayList<>();
+            Optional.ofNullable(item.get("lore")).ifPresent(lore -> {
+                if (lore instanceof String) lores.add((String) lore);
+                else lores.addAll(item.getStringList("lore"));
+            });
+
             InventoryButton button = new InventoryButton()
                     .id(key)
                     .priority(item.getInt("priority", 0))
                     .viewRequirements(requirements)
                     .creator(player -> {
                         ItemBuilder itemBuilder = new ItemBuilder(material);
-
+                        if (displayName.isBlank() && lores.isEmpty()) itemBuilder.hideToolTip(true);
+                        else {
+                            itemBuilder.rename(displayName);
+                            if (!lores.isEmpty()) itemBuilder.loresSet(lores);
+                        }
                         return itemBuilder.build();
                     })
                     .consumer(event -> {
