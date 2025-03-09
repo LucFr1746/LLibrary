@@ -232,7 +232,6 @@ public class InventoryBuilder implements InventoryHandler {
 
     @Override
     public void onClose(InventoryCloseEvent event) {
-
     }
 
     public void loadFromFile(@Nullable FileConfiguration fileConfiguration) {
@@ -249,7 +248,7 @@ public class InventoryBuilder implements InventoryHandler {
         setOpenRequirements(requirements);
 
         List<Action> actions;
-        if (fileConfiguration.getConfigurationSection("open-action") == null) {
+        if (!fileConfiguration.contains("open-action")) {
             actions = new ArrayList<>();
         } else {
             actions = new ActionLoader().getActions(fileConfiguration.getStringList("open-action"));
