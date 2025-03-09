@@ -37,6 +37,10 @@ public class Logger {
         Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + getPluginPrefix() + message);
     }
 
+    public void debug(String message) {
+        Bukkit.getConsoleSender().sendMessage(ChatColor.BLUE + getPluginPrefix() + message);
+    }
+
     private String getPluginPrefix() {
         return "[" + plugin.getName() + "] ";
     }
