@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import de.tr7zw.nbtapi.NBT;
 import de.tr7zw.nbtapi.iface.ReadWriteNBT;
 import de.tr7zw.nbtapi.iface.ReadWriteNBTCompoundList;
+import io.github.lucfr1746.llibrary.util.helper.StringUtil;
 import io.github.lucfr1746.llibrary.utils.Util;
 import io.github.lucfr1746.llibrary.utils.UtilsString;
 import net.kyori.adventure.platform.bukkit.MinecraftComponentSerializer;
@@ -1173,7 +1174,7 @@ public class ItemBuilder {
             return this;
         }
 
-        name = Util.formatText(name);
+        name = StringUtil.format(name, null);
         meta.setDisplayName(name);
         this.itemStack.setItemMeta(meta);
         return this;
