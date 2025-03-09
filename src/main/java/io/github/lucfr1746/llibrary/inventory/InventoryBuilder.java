@@ -170,11 +170,6 @@ public class InventoryBuilder implements InventoryHandler {
         updateButtons(player);
     }
 
-    public void decorate(Player player) {
-        this.inventoryView = menuType.typed().create(player, getTitle());
-        updateButtons(player);
-    }
-
     private void updateButtons(Player player) {
         buttonMap.forEach((slot, buttons) -> updateButton(player, slot));
     }
@@ -184,10 +179,19 @@ public class InventoryBuilder implements InventoryHandler {
                 .stream()
                 .filter(button -> button.getViewRequirements().stream().allMatch(req -> req.evaluate(player)))
                 .findFirst()
-                .ifPresent(button -> {
-                    ItemStack icon = button.getIconCreator().apply(player);
-                    this.inventoryView.getTopInventory().setItem(slot, icon);
-                });
+                .ifPresentOrElse(button -> {
+                    if (slot >= this.inventoryView.getTopInventory().getSize()) {
+                        LLibrary.getPluginLogger().warning("The slot -> " + slot + " is out of of inventory size. Skipping...");
+                    } else {
+                        ItemStack icon = button.getIconCreator().apply(player);
+                        this.inventoryView.getTopInventory().setItem(slot, icon);
+                    }
+                }, () -> this.inventoryView.getTopInventory().clear(slot));
+    }
+
+    public void decorate(Player player) {
+        this.inventoryView = menuType.typed().create(player, getTitle());
+        updateButtons(player);
     }
 
     @Override
@@ -300,12 +304,16 @@ public class InventoryBuilder implements InventoryHandler {
                 continue;
             }
 
-            List<Integer> slots = new ArrayList<>();
-            if (item.getIntegerList("slot").isEmpty()) {
+            List<Integer> slots;
+            if (item.getIntegerList("slot").isEmpty() && item.getInt("slot", -1) == -1) {
                 LLibrary.getPluginLogger().error("Missing slot for item: " + key + ". Skipping this item...");
                 continue;
             } else {
-                slots.addAll(item.getIntegerList("slot"));
+                if (item.getIntegerList("slot").isEmpty()) {
+                    slots = Collections.singletonList(item.getInt("slot"));
+                } else {
+                    slots = new ArrayList<>(item.getIntegerList("slot"));
+                }
             }
 
             List<Requirement> requirements;
@@ -323,6 +331,9 @@ public class InventoryBuilder implements InventoryHandler {
                         ItemBuilder itemBuilder = new ItemBuilder(material);
 
                         return itemBuilder.build();
+                    })
+                    .consumer(event -> {
+                        if (key.equals("close")) event.getWhoClicked().closeInventory();
                     });
             slots.forEach(slot -> addButton(slot, button));
         }
