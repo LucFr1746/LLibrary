@@ -690,7 +690,7 @@ public class ItemBuilder {
     /**
      * Gets the damage resistance tag of the item.
      *
-     * @return the damage resistance tag as a Tag<DamageType>, or null if not set
+     * @return the damage resistance tag as a {@link Tag<DamageType>}, or null if not set
      */
     public @Nullable Tag<DamageType> getDamageResistant() {
         return this.itemMeta.getDamageResistant();
@@ -699,7 +699,7 @@ public class ItemBuilder {
     /**
      * Sets the damage resistance tag of the item.
      *
-     * @param tag the Tag<DamageType> for damage resistance, or null to remove it
+     * @param tag the {@link Tag<DamageType>} for damage resistance, or null to remove it
      * @return the current ItemBuilder instance for method chaining
      */
     public ItemBuilder setDamageResistant(@Nullable Tag<DamageType> tag) {
