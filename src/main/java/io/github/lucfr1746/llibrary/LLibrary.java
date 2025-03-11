@@ -51,6 +51,10 @@ public final class LLibrary extends JavaPlugin {
         return pluginLoader.getPermission();
     }
 
+    public static boolean hasPaperAPI() {
+        return pluginLoader.getHooks().hasPaperAPI();
+    }
+
     public static boolean isVaultEnabled() {
         return pluginLoader.getHooks().isVaultEnabled();
     }

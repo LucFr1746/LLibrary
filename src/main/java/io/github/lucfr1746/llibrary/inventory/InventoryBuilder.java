@@ -335,10 +335,10 @@ public class InventoryBuilder implements InventoryHandler {
                     .viewRequirements(requirements)
                     .creator(player -> {
                         ItemBuilder itemBuilder = new ItemBuilder(material);
-                        if (displayName.isBlank() && lores.isEmpty()) itemBuilder.hideToolTip(true);
+                        if (displayName.isBlank() && lores.isEmpty()) itemBuilder.setHideTooltip(true);
                         else {
-                            itemBuilder.rename(displayName);
-                            if (!lores.isEmpty()) itemBuilder.loresSet(lores);
+                            itemBuilder.setDisplayName(displayName);
+                            if (!lores.isEmpty()) itemBuilder.setLores(lores);
                         }
                         return itemBuilder.build();
                     })

@@ -123,12 +123,20 @@ class PluginLoader {
 
     static class Hooks {
 
+        private boolean hasPaper = false;
+
         private boolean isVault = false;
         private boolean isPAPI = false;
 
         public void hooking() {
+            this.hasPaper = initPaper();
+
             this.isVault = Bukkit.getPluginManager().isPluginEnabled("Vault");
             this.isPAPI = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
+        }
+
+        public boolean hasPaperAPI() {
+            return this.hasPaper;
         }
 
         public boolean isVaultEnabled() {
@@ -137,6 +145,15 @@ class PluginLoader {
 
         public boolean isPAPIEnabled() {
             return this.isPAPI;
+        }
+
+        private boolean initPaper() {
+            try {
+                Class.forName("com.destroystokyo.paper.VersionHistoryManager$VersionData");
+                return true;
+            } catch (NoClassDefFoundError | ClassNotFoundException ex) {
+                return false;
+            }
         }
     }
 }
