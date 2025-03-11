@@ -6,10 +6,17 @@ import org.bukkit.Sound;
 import java.util.*;
 import java.util.function.Function;
 
+/**
+ * Loads and manages different types of actions in the plugin.
+ * Provides a way to register, retrieve, and process actions based on string inputs.
+ */
 public class ActionLoader {
 
     private final Map<String, Function<String, Action>> actionFactories = new HashMap<>();
 
+    /**
+     * Initializes the ActionLoader and registers all available actions.
+     */
     public ActionLoader() {
         registerAction("[console]", ConsoleAction::new);
         registerAction("[player]", PlayerAction::new);
@@ -29,10 +36,20 @@ public class ActionLoader {
         registerAction("[broadcast-world-sound]", input -> parseSoundAction("[broadcast-world-sound]", input));
     }
 
+    /**
+     * Registers an action with a specific identifier.
+     * @param identifier The string identifier for the action.
+     * @param factory The function that creates the action instance.
+     */
     public void registerAction(String identifier, Function<String, Action> factory) {
         actionFactories.put(identifier.toLowerCase(), factory);
     }
 
+    /**
+     * Retrieves an Action instance based on an input string.
+     * @param input The input string defining the action.
+     * @return The corresponding Action instance or null if not found.
+     */
     public Action getAction(String input) {
         String[] args = input.split(" ", 2);
         Function<String, Action> factory = actionFactories.get(args[0].toLowerCase());
@@ -44,6 +61,11 @@ public class ActionLoader {
         return null;
     }
 
+    /**
+     * Retrieves a list of Action instances based on a list of input strings.
+     * @param inputs A list of action input strings.
+     * @return A list of corresponding Action instances.
+     */
     public List<Action> getActions(List<String> inputs) {
         List<Action> actions = new ArrayList<>();
         for (String actionStr : inputs) {
@@ -53,6 +75,12 @@ public class ActionLoader {
         return actions;
     }
 
+    /**
+     * Parses a sound action from an input string.
+     * @param type The type of sound action.
+     * @param input The input defining the sound, volume, and pitch.
+     * @return A corresponding sound action or null if invalid.
+     */
     private Action parseSoundAction(String type, String input) {
         String[] args = input.split(" ");
         if (args.length < 1) return null;
@@ -72,6 +100,11 @@ public class ActionLoader {
         }
     }
 
+    /**
+     * Parses a float value from a string, returning a default value if invalid.
+     * @param value The string to parse.
+     * @return The parsed float value or 1.0f if parsing fails.
+     */
     private float parseFloatOrDefault(String value) {
         try {
             return Float.parseFloat(value);
