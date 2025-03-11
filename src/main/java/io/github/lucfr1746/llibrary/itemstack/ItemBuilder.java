@@ -2,622 +2,630 @@ package io.github.lucfr1746.llibrary.itemstack;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import de.tr7zw.nbtapi.NBT;
-import de.tr7zw.nbtapi.iface.ReadWriteNBT;
-import de.tr7zw.nbtapi.iface.ReadWriteNBTCompoundList;
+import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.itemstack.component.*;
+import io.github.lucfr1746.llibrary.util.NamespaceKey;
 import io.github.lucfr1746.llibrary.util.helper.StringUtil;
-import io.github.lucfr1746.llibrary.utils.Util;
-import io.github.lucfr1746.llibrary.utils.UtilsString;
-import net.kyori.adventure.platform.bukkit.MinecraftComponentSerializer;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.*;
+import net.md_5.bungee.api.chat.TranslatableComponent;
+import org.bukkit.JukeboxSong;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.damage.DamageType;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Axolotl;
-import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemRarity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.*;
-import org.bukkit.inventory.meta.trim.ArmorTrim;
-import org.bukkit.inventory.meta.trim.TrimMaterial;
-import org.bukkit.inventory.meta.trim.TrimPattern;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
- * A utility class for building and modifying {@link ItemStack} objects.
- * This class provides methods to easily create and customize {@link ItemStack} instances.
+ * A utility class for building and modifying {@link ItemStack} objects in Minecraft.
+ * Supports setting item material, amount, display names, and more.
  */
 public class ItemBuilder {
 
     private final @NotNull ItemStack itemStack;
+    private final @NotNull ItemMeta itemMeta;
 
     /**
-     * Constructs an {@link ItemBuilder} with a predefined {@link ItemStack}.
+     * Creates an ItemBuilder from an existing {@link ItemStack}.
      *
-     * @param itemStack The {@link ItemStack} to wrap. Cannot be null.
+     * @param itemStack the ItemStack to clone and modify
+     * @throws NullPointerException if itemStack is null
      */
     public ItemBuilder(@NotNull ItemStack itemStack) {
-        this.itemStack = itemStack;
+        this.itemStack = itemStack.clone();
+        if (this.itemStack.getItemMeta() == null) {
+            throw new RuntimeException("Failed to retrieve item meta.");
+        }
+        this.itemMeta = this.itemStack.getItemMeta();
     }
 
     /**
-     * Constructs an {@link ItemBuilder} with a {@link Material} and a specified amount.
+     * Creates an ItemBuilder with a specified {@link Material} and amount.
      *
-     * @param material The {@link Material} of the item. Cannot be null.
-     * @param amount   The amount of the item. Must be between 1 and 127 (inclusive).
-     * @throws IllegalArgumentException if the amount is invalid.
+     * @param material the material of the item
+     * @param amount the quantity of items (must be between 1 and 127)
+     * @throws IllegalArgumentException if the amount is less than 1 or greater than 127
+     * @throws NullPointerException if material is null
      */
     public ItemBuilder(@NotNull Material material, int amount) {
-        this(new ItemStack(material, amount));
+        if (amount < 1 || amount > 127) {
+            throw new IllegalArgumentException("The amount must be between 1 and 127 -> " + amount);
+        }
+        this.itemStack = new ItemStack(material, amount);
+        if (this.itemStack.getItemMeta() == null) {
+            throw new RuntimeException("Failed to retrieve item meta.");
+        }
+        this.itemMeta = this.itemStack.getItemMeta();
     }
 
     /**
-     * Constructs an {@link ItemBuilder} with a {@link Material} and a default amount of 1.
+     * Creates an ItemBuilder with a specified {@link Material} and a default amount of 1.
      *
-     * @param material The {@link Material} of the item. Cannot be null.
+     * @param material the material of the item
+     * @throws IllegalArgumentException if material is air
+     * @throws NullPointerException if material is null
      */
     public ItemBuilder(@NotNull Material material) {
-        this(material, 1);
+        if (material.isAir()) {
+            throw new IllegalArgumentException("The material cannot be air -> " + material);
+        }
+        this.itemStack = new ItemStack(material);
+        if (this.itemStack.getItemMeta() == null) {
+            throw new RuntimeException("Failed to retrieve item meta.");
+        }
+        this.itemMeta = this.itemStack.getItemMeta();
     }
 
     /**
-     * Returns the {@link ItemStack} that this builder wraps.
+     * Builds and returns the final {@link ItemStack}.
      *
-     * @return The {@link ItemStack} instance. Never null.
+     * @return a clone of the constructed ItemStack
      */
     public @NotNull ItemStack build() {
+        this.itemStack.setItemMeta(this.itemMeta);
         return this.itemStack;
     }
 
     /**
-     * Sets the amount of the {@link ItemStack}.
-     * If the amount is less than 1 or greater than 127, an exception is thrown.
-     * If the amount is negative, the current amount is adjusted, but not below 0.
+     * Sets the number of items in the stack.
      *
-     * @param amount The amount to set or adjust by.
-     * @return The current {@link ItemBuilder} instance for method chaining.
-     * @throws IllegalArgumentException if the amount exceeds bounds (1-127) or if the item is invalid.
+     * @param amount the number of items must be between 1 and 127 (inclusive)
+     * @return this ItemBuilder instance for method chaining
+     * @throws IllegalArgumentException if the amount is less than 1 or greater than 127
      */
     public ItemBuilder setAmount(int amount) {
-        if (isInvalidItemStack()) return null;
-        if (amount < 0)
-            this.itemStack.setAmount(Math.max(0, this.itemStack.getAmount() + amount));
-        else if ((amount > 127) || (amount < 1))
-            throw new IllegalArgumentException("Wrong amount number");
-        else
-            this.itemStack.setAmount(amount);
+        if (amount < 1 || amount > 127) {
+            throw new IllegalArgumentException("The amount must be between 1 and 127 -> " + amount);
+        }
+        this.itemStack.setAmount(amount);
         return this;
     }
 
     /**
-     * Gets the current amount of the {@link ItemStack}.
+     * Gets the number of items in the stack.
      *
-     * @return The amount of the item, or -1 if the item is invalid.
+     * @return the number of items in the stack
      */
     public int getAmount() {
-        if (isInvalidItemStack()) return -1;
         return this.itemStack.getAmount();
     }
 
     /**
-     * Creates and returns an {@link ItemAttributeBuilder} for further customization of the {@link ItemStack}.
+     * Sets the type of the item stack.
      *
-     * @return An {@link ItemAttributeBuilder} instance for the item, or null if the item is invalid.
+     * @param material the material to set, must not be air
+     * @return this ItemBuilder instance for method chaining
+     * @throws IllegalArgumentException if the material is air
      */
-    public ItemAttributeBuilder getItemAttributeBuilder() {
-        if (isInvalidItemStack()) return null;
-        return new ItemAttributeBuilder(this.itemStack);
-    }
-
-    /**
-     * Retrieves the {@link Axolotl.Variant} from the {@link ItemStack} if it contains {@link AxolotlBucketMeta}.
-     *
-     * @return The {@link Axolotl.Variant} associated with the item, or null if the item is invalid.
-     * @throws IllegalStateException if the {@link ItemStack}'s meta is not an instance of {@link AxolotlBucketMeta}.
-     */
-    public Axolotl.Variant getAxolotlVariant() {
-        if (isInvalidItemStack()) return null;
-        if (!(this.itemStack.getItemMeta() instanceof AxolotlBucketMeta axolotlBucketMeta)) {
-            throw new IllegalStateException("The ItemStack does not have AxolotlBucketMeta!");
+    public ItemBuilder setType(@NotNull Material material) {
+        if (material.isAir()) {
+            throw new IllegalArgumentException("The material cannot be air -> " + material);
         }
-
-        return axolotlBucketMeta.getVariant();
-    }
-
-    /**
-     * Checks if the {@link ItemStack} with {@link AxolotlBucketMeta} contains an {@link Axolotl.Variant}.
-     *
-     * @return {@code true} if the {@link ItemStack} has an {@link Axolotl.Variant}, {@code false} otherwise, false if the item is invalid.
-     * @throws IllegalStateException if the {@link ItemStack}'s meta is not an instance of {@link AxolotlBucketMeta}.
-     */
-    public boolean hasAxolotlVariant() {
-        if (isInvalidItemStack()) return false;
-        if (!(this.itemStack.getItemMeta() instanceof AxolotlBucketMeta axolotlBucketMeta)) {
-            throw new IllegalStateException("The ItemStack does not have AxolotlBucketMeta!");
-        }
-
-        return axolotlBucketMeta.hasVariant();
-    }
-
-    /**
-     * Sets the {@link Axolotl.Variant} for the {@link ItemStack} if it contains {@link AxolotlBucketMeta}.
-     *
-     * @param axolotlVariant The {@link Axolotl.Variant} to set. Cannot be null.
-     * @return The current {@link ItemBuilder} instance for method chaining, or null if the item is invalid.
-     * @throws IllegalStateException if the {@link ItemStack}'s meta is not an instance of {@link AxolotlBucketMeta}.
-     */
-    public ItemBuilder setAxolotlVariant(@NotNull Axolotl.Variant axolotlVariant) {
-        if (isInvalidItemStack()) return null;
-        if (!(this.itemStack.getItemMeta() instanceof AxolotlBucketMeta axolotlBucketMeta)) {
-            throw new IllegalStateException("The ItemStack does not have AxolotlBucketMeta!");
-        }
-
-        axolotlBucketMeta.setVariant(axolotlVariant);
-        this.itemStack.setItemMeta(axolotlBucketMeta);
-
+        this.itemStack.setType(material);
         return this;
     }
 
     /**
-     * Converts the current {@link ItemStack} into a {@link BannerBuilder}.
-     * The {@code ItemStack} is passed into the {@code BannerBuilder} constructor to allow for
-     * pattern modifications on the banner.
+     * Gets the type of material of the item stack.
      *
-     * @return a new {@link BannerBuilder} instance, initialized with the current {@link ItemStack}.
-     * @throws IllegalArgumentException if the {@link ItemStack} is invalid or does not have {@link BannerMeta}.
+     * @return the material type of the item stack
      */
-    public BannerBuilder getBannerBuilder() {
-        return new BannerBuilder(this.itemStack);
+    public @NotNull Material getType() {
+        return this.itemStack.getType();
     }
 
     /**
-     * Converts the current {@link ItemStack} into a {@link BookBuilder}.
-     * The {@code ItemStack} is passed into the {@code BookBuilder} constructor to allow for
-     * further modifications on the book.
+     * Gets the translation key for this item, used for localization.
      *
-     * @return a new {@link BookBuilder} instance, initialized with the current {@link ItemStack}.
+     * @return the translation key for the item
      */
-    public BookBuilder getBookBuilder() {
-        return new BookBuilder(this.itemStack);
+    public @NotNull String getTranslationKey() {
+        return this.itemStack.getTranslationKey();
     }
 
     /**
-     * Retrieves the color of the ItemStack if applicable.
+     * Sets the display name of the item.
      *
-     * @return the color of the ItemStack, or null if not applicable.
-     * @throws IllegalStateException if the ItemStack does not support color.
+     * @param name the new display name can be null to remove the display name
+     * @return the current ItemBuilder instance for method chaining
      */
-    public Color getColor() {
-        if (isInvalidItemStack()) return null;
-        if (!hasColorMeta()) {
-            throw new IllegalStateException("The ItemStack must have PotionMeta, LeatherArmorMeta, or FireworkEffectMeta!");
-        }
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) return potionMeta.getColor();
-        if (meta instanceof LeatherArmorMeta leatherArmorMeta) return leatherArmorMeta.getColor();
-        throw new IllegalArgumentException("The ItemStack has FireworkEffectMeta and should be returned as a list of colors!");
-    }
-
-    /**
-     * Checks if the ItemStack has a color.
-     *
-     * @return true if the ItemStack has a color, false otherwise.
-     * @throws IllegalStateException if the ItemStack does not support color.
-     */
-    public boolean hasColor() {
-        if (isInvalidItemStack()) return false;
-        if (!hasColorMeta()) {
-            throw new IllegalStateException("The ItemStack must have PotionMeta, LeatherArmorMeta, or FireworkEffectMeta!");
-        }
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) return potionMeta.hasColor();
-        if (meta instanceof FireworkEffectMeta fireworkEffectMeta) {
-            FireworkEffect effect = fireworkEffectMeta.getEffect();
-            return effect != null && !effect.getColors().isEmpty();
-        }
-        return true;
-    }
-
-    /**
-     * Sets the color of the ItemStack.
-     *
-     * @param color the color to set.
-     * @return the updated ItemBuilder instance.
-     * @throws IllegalStateException if the ItemStack does not support color.
-     */
-    public ItemBuilder setColor(Color color) {
-        if (isInvalidItemStack()) return null;
-        if (!hasColorMeta()) {
-            throw new IllegalStateException("The ItemStack must have PotionMeta, LeatherArmorMeta, or FireworkEffectMeta!");
-        }
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) {
-            potionMeta.setColor(color);
-            this.itemStack.setItemMeta(potionMeta);
-        } else if (meta instanceof LeatherArmorMeta leatherArmorMeta) {
-            leatherArmorMeta.setColor(color);
-            this.itemStack.setItemMeta(leatherArmorMeta);
-        } else if (meta instanceof FireworkEffectMeta fireworkEffectMeta) {
-            FireworkEffect oldEffect = fireworkEffectMeta.getEffect();
-            FireworkEffect.Builder newEffect = FireworkEffect.builder()
-                    .flicker(oldEffect != null && oldEffect.hasFlicker())
-                    .trail(oldEffect != null && oldEffect.hasTrail())
-                    .withColor(color);
-            if (oldEffect != null) newEffect.withFade(oldEffect.getFadeColors());
-            fireworkEffectMeta.setEffect(newEffect.build());
-            this.itemStack.setItemMeta(fireworkEffectMeta);
-        }
+    public ItemBuilder setDisplayName(String name) {
+        this.itemMeta.setDisplayName(name == null ? null : StringUtil.format(name, null));
         return this;
     }
 
     /**
-     * Sets the color of the ItemStack using RGB values.
+     * Gets the display name of the item.
      *
-     * @param red   the red component (0-255).
-     * @param green the green component (0-255).
-     * @param blue  the blue component (0-255).
-     * @return the updated ItemBuilder instance.
-     * @throws IllegalArgumentException if any, RGB value is out of range.
+     * @return the display name if a set, or the default item translation key if not
      */
-    public ItemBuilder setColor(int red, int green, int blue) {
-        if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255) {
-            throw new IllegalArgumentException("RGB values must be between 0 and 255.");
-        }
-        return setColor(Color.fromRGB(red, green, blue));
+    public String getDisplayName() {
+        return this.itemMeta.hasDisplayName()
+                ? StringUtil.revertColors(this.itemMeta.getDisplayName())
+                : new TranslatableComponent(this.itemStack.getTranslationKey()).toPlainText();
     }
 
     /**
-     * Sets the color of the ItemStack using a hex color code.
+     * Sets the lore of the item using a list of strings.
      *
-     * @param hexColor the hex color string (e.g., "#FF5733").
-     * @return the updated ItemBuilder instance.
-     * @throws IllegalArgumentException if the hex color format is invalid.
+     * @param lores the list of lore strings to set
+     * @return the current ItemBuilder instance for method chaining
      */
-    public ItemBuilder setColor(String hexColor) {
-        if (!hexColor.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")) {
-            throw new IllegalArgumentException("Invalid HEX color format: " + hexColor);
-        }
-        if (hexColor.length() == 4) {
-            hexColor = "#" + hexColor.charAt(1) + hexColor.charAt(1)
-                    + hexColor.charAt(2) + hexColor.charAt(2)
-                    + hexColor.charAt(3) + hexColor.charAt(3);
-        }
-        return setColor(
-                Integer.parseInt(hexColor.substring(1, 3), 16),
-                Integer.parseInt(hexColor.substring(3, 5), 16),
-                Integer.parseInt(hexColor.substring(5, 7), 16)
-        );
+    public ItemBuilder setLores(List<String> lores) {
+        this.itemMeta.setLore(lores.stream().map(text -> StringUtil.format(text, null)).toList());
+        return this;
     }
 
     /**
-     * Retrieves the custom model data of the ItemStack.
+     * Sets the lore of the item using an array of strings.
      *
-     * @return the custom model data, or -1 if invalid or not set.
+     * @param lores the array of lore strings to set
+     * @return the current ItemBuilder instance for method chaining
      */
-    public int getCustomModelData() {
-        if (isInvalidItemStack()) return -1;
-        ItemMeta meta = getItemMeta();
-        return hasCustomModelData() ? meta.getCustomModelData() : -1;
+    public ItemBuilder setLores(String... lores) {
+        return setLores(lores != null ? Arrays.asList(lores) : new ArrayList<>());
     }
 
     /**
-     * Checks if the ItemStack has custom model data.
+     * Replaces occurrences of a specific substring in the item's lore.
      *
-     * @return {@code true} if custom model data is present, otherwise {@code false}.
+     * @param from the substring to replace
+     * @param to the substring to replace with
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder replaceLore(@NotNull String from, @NotNull String to) {
+        List<String> lores = this.itemMeta.hasLore() && this.itemMeta.getLore() != null
+                ? this.itemMeta.getLore()
+                : new ArrayList<>();
+        lores.replaceAll(string -> string.replace(from, to));
+        this.itemMeta.setLore(lores);
+        return this;
+    }
+
+    /**
+     * Adds a single lore line to the item.
+     *
+     * @param lore the lore string to add
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder addLore(@NotNull String lore) {
+        List<String> lores = this.itemMeta.hasLore() && this.itemMeta.getLore() != null
+                ? this.itemMeta.getLore()
+                : new ArrayList<>();
+        lores.add(StringUtil.format(lore, null));
+        this.itemMeta.setLore(lores);
+        return this;
+    }
+
+    /**
+     * Inserts a lore line at a specified index.
+     *
+     * @param lore the lore string to insert
+     * @param index the position to insert the lore at
+     * @return the current ItemBuilder instance for method chaining
+     * @throws IllegalArgumentException if the index is negative
+     */
+    public ItemBuilder insertLore(@NotNull String lore, int index) {
+        if (index < 0) {
+            throw new IllegalArgumentException("Index must be a non-negative number -> " + index);
+        }
+        List<String> lores = this.itemMeta.hasLore() && this.itemMeta.getLore() != null
+                ? this.itemMeta.getLore()
+                : new ArrayList<>();
+        while (lores.size() <= index) lores.add("");
+        lores.add(index, StringUtil.format(lore, null));
+        this.itemMeta.setLore(lores);
+        return this;
+    }
+
+    /**
+     * Checks if the item has a Custom Model Data set.
+     *
+     * @return true if the item has Custom Model Data, false otherwise
      */
     public boolean hasCustomModelData() {
-        if (isInvalidItemStack()) return false;
-        ItemMeta meta = getItemMeta();
-        return meta.hasCustomModelData();
+        return this.itemMeta.hasCustomModelData();
     }
 
     /**
-     * Sets the custom model data for the ItemStack.
+     * Gets the Custom Model Data of the item.
      *
-     * @param customModelData the custom model data value to set.
-     * @return the updated {@code ItemBuilder} instance.
-     * @throws IllegalStateException if the ItemStack is invalid.
+     * @return the Custom Model Data value
+     * @throws IllegalArgumentException if the item does not have Custom Model Data
      */
-    public ItemBuilder setCustomModelData(int customModelData) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        meta.setCustomModelData(customModelData);
-        this.itemStack.setItemMeta(meta);
+    public int getCustomModelData() {
+        if (!hasCustomModelData())
+            throw new IllegalArgumentException("The item doesn't have Custom Model Data!");
+        return this.itemMeta.getCustomModelData();
+    }
+
+    /**
+     * Sets the Custom Model Data for the item.
+     *
+     * @param data the Custom Model Data to set, or null to remove it
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setCustomModelData(Integer data) {
+        this.itemMeta.setCustomModelData(data);
         return this;
     }
 
     /**
-     * Gets the current damage value of the ItemStack.
+     * Checks if the item has an enchantable value set.
      *
-     * @return the amount of damage, or -1 if the ItemStack is invalid or not damageable.
-     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     * @return true if the item has an enchantable value, false otherwise
      */
-    public int getDamaged() {
-        if (isInvalidItemStack()) return -1;
-
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (!(meta instanceof Damageable)) {
-            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
-        }
-
-        return ((Damageable) meta).getDamage();
+    public boolean hasEnchantable() {
+        return this.itemMeta.hasEnchantable();
     }
 
     /**
-     * Gets the maximum durability of the ItemStack.
+     * Gets the enchantable value of the item.
      *
-     * @return the maximum durability value, or -1 if the ItemStack is invalid or not damageable.
-     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     * @return the enchantable value
      */
-    public int getMaxDurability() {
-        if (isInvalidItemStack()) return -1;
-
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (!(meta instanceof Damageable)) {
-            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
-        }
-
-        return ((Damageable) meta).getMaxDamage();
+    public int getEnchantable() {
+        return this.itemMeta.getEnchantable();
     }
 
     /**
-     * Checks if the ItemStack has taken any damage.
+     * Sets the enchantable value of the item. If null is provided, the enchantable value will be removed.
      *
-     * @return true if the ItemStack has been damaged, false otherwise.
-     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     * @param enchantable the enchantable value to set, or null to remove it
+     * @return the current ItemBuilder instance for method chaining
      */
-    public boolean hasDamaged() {
-        if (isInvalidItemStack()) return false;
-
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (!(meta instanceof Damageable)) {
-            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
-        }
-
-        return ((Damageable) meta).hasDamage();
-    }
-
-    /**
-     * Checks if the ItemStack has a maximum durability value set.
-     *
-     * @return true if the ItemStack has a maximum durability value, false otherwise.
-     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
-     */
-    public boolean hasMaxDurability() {
-        if (isInvalidItemStack()) return false;
-
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (!(meta instanceof Damageable)) {
-            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
-        }
-
-        return ((Damageable) meta).hasMaxDamage();
-    }
-
-    /**
-     * Sets the damage value of the ItemStack.
-     *
-     * @param amount the damage amount to set. Clamped between 0 and the max durability of the ItemStack.
-     * @return the modified ItemBuilder instance, or null if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
-     */
-    public ItemBuilder setDamaged(int amount) {
-        if (isInvalidItemStack()) return null;
-
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (!(meta instanceof Damageable damageableMeta)) {
-            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
-        }
-
-        amount = Math.max(0, Math.min(amount, this.itemStack.getType().getMaxDurability()));
-        damageableMeta.setDamage(amount);
-        this.itemStack.setItemMeta(meta);
+    public ItemBuilder setEnchantable(@Nullable Integer enchantable) {
+        this.itemMeta.setEnchantable(enchantable);
         return this;
     }
 
     /**
-     * Sets the maximum durability of the ItemStack.
+     * Checks if the item has any enchantments.
      *
-     * @param amount the maximum durability value to set.
-     * @return the modified ItemBuilder instance, or null if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have Damageable metadata.
+     * @return true if the item has enchantments, false otherwise
      */
-    public ItemBuilder setMaxDurability(int amount) {
-        if (isInvalidItemStack()) return null;
-
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (!(meta instanceof Damageable damageableMeta)) {
-            throw new IllegalStateException("The ItemStack must have Damageable metadata!");
-        }
-
-        damageableMeta.setMaxDamage(amount);
-        this.itemStack.setItemMeta(meta);
-        return this;
+    public boolean hasEnchants() {
+        return this.itemMeta.hasEnchants();
     }
 
     /**
-     * Checks if the item stack contains the specified enchantment.
+     * Checks if the item has a specific enchantment.
+     *
+     * @param enchantment the enchantment to check for
+     * @return true if the item has the specified enchantment, false otherwise
+     */
+    public boolean hasEnchant(@NotNull Enchantment enchantment) {
+        return this.itemMeta.hasEnchant(enchantment);
+    }
+
+    /**
+     * Gets the level of a specific enchantment on the item.
      *
      * @param enchantment the enchantment to check
-     * @return true if the item contains the enchantment, false otherwise
+     * @return the level of the enchantment
      */
-    public boolean containsEnchantment(@NotNull Enchantment enchantment) {
-        return !isInvalidItemStack() && this.itemStack.containsEnchantment(enchantment);
+    public int getEnchantLevel(@NotNull Enchantment enchantment) {
+        return this.itemMeta.getEnchantLevel(enchantment);
     }
 
     /**
-     * Gets the level of a specific enchantment on the item stack.
+     * Gets all enchantments on the item.
      *
-     * @param enchantment the enchantment to check
-     * @return the level of the enchantment, or 0 if not present or the item stack is invalid
+     * @return a map of enchantments and their levels
      */
-    public int getEnchantmentLevel(@NotNull Enchantment enchantment) {
-        return isInvalidItemStack() ? 0 : this.itemStack.getEnchantmentLevel(enchantment);
+    public @NotNull Map<Enchantment, Integer> getEnchants() {
+        return this.itemMeta.getEnchants();
     }
 
     /**
-     * Retrieves all enchantments applied to the item stack.
+     * Adds or updates an enchantment on the item.
+     * If the level is 0, the enchantment will be removed.
      *
-     * @return a map of enchantments and their levels, or an empty map if the item stack is invalid
+     * @param enchantment the enchantment to add or update
+     * @param level the level of the enchantment
+     * @param ignoreLevelLimit whether to bypass level restrictions
+     * @return the current ItemBuilder instance for method chaining
      */
-    @NotNull
-    public Map<Enchantment, Integer> getEnchantments() {
-        return isInvalidItemStack() ? Collections.emptyMap() : this.itemStack.getEnchantments();
-    }
-
-    /**
-     * Adds multiple enchantments to the item stack.
-     *
-     * @param enchantments    a map of enchantments and their levels
-     * @param byPassMaxLevel  if true, allows levels higher than the enchantment's max level
-     * @return the current ItemBuilder instance
-     */
-    public ItemBuilder addEnchantments(@NotNull Map<Enchantment, Integer> enchantments, boolean byPassMaxLevel) {
-        enchantments.forEach((enchantment, level) -> addEnchantment(enchantment, level, byPassMaxLevel));
+    public ItemBuilder addEnchant(@NotNull Enchantment enchantment, int level, boolean ignoreLevelLimit) {
+        if (level == 0)
+            return removeEnchant(enchantment);
+        else
+            this.itemMeta.addEnchant(enchantment, level, ignoreLevelLimit);
         return this;
     }
 
     /**
-     * Adds multiple enchantments to the item stack, respecting their max levels.
+     * Adds or updates an enchantment on the item with level limit check.
      *
-     * @param enchantments a map of enchantments and their levels
-     * @return the current ItemBuilder instance
+     * @param enchantment the enchantment to add or update
+     * @param level the level of the enchantment
+     * @return the current ItemBuilder instance for method chaining
      */
-    public ItemBuilder addEnchantments(@NotNull Map<Enchantment, Integer> enchantments) {
-        return addEnchantments(enchantments, false);
+    public ItemBuilder addEnchant(@NotNull Enchantment enchantment, int level) {
+        return addEnchant(enchantment, level, false);
     }
 
     /**
-     * Adds an enchantment to the item stack.
-     *
-     * @param enchantment    the enchantment to add
-     * @param level          the level of the enchantment
-     * @param byPassMaxLevel if true, allows levels higher than the enchantment's max level
-     * @return the current ItemBuilder instance
-     */
-    public ItemBuilder addEnchantment(@NotNull Enchantment enchantment, int level, boolean byPassMaxLevel) {
-        if (isInvalidItemStack()) return this;
-        int lvl = byPassMaxLevel ? level : Math.min(enchantment.getMaxLevel(), level);
-        if (lvl == 0) {
-            removeEnchantment(enchantment);
-        } else {
-            this.itemStack.addUnsafeEnchantment(enchantment, lvl);
-        }
-        return this;
-    }
-
-    /**
-     * Adds an enchantment to the item stack, respecting the enchantment's max level.
+     * Adds an enchantment to the item with level 1 and level limit check.
      *
      * @param enchantment the enchantment to add
-     * @param level       the level of the enchantment
-     * @return the current ItemBuilder instance
+     * @return the current ItemBuilder instance for method chaining
      */
-    public ItemBuilder addEnchantment(@NotNull Enchantment enchantment, int level) {
-        return addEnchantment(enchantment, level, false);
+    public ItemBuilder addEnchant(@NotNull Enchantment enchantment) {
+        return addEnchant(enchantment, 1, false);
     }
 
     /**
-     * Removes a specific enchantment from the item stack.
+     * Removes a specific enchantment from the item.
      *
      * @param enchantment the enchantment to remove
-     * @return the level of the removed enchantment, or -1 if the item stack is invalid
+     * @return the current ItemBuilder instance for method chaining
      */
-    public int removeEnchantment(@NotNull Enchantment enchantment) {
-        return isInvalidItemStack() ? -1 : this.itemStack.removeEnchantment(enchantment);
+    public ItemBuilder removeEnchant(@NotNull Enchantment enchantment) {
+        this.itemMeta.removeEnchant(enchantment);
+        return this;
     }
 
     /**
-     * Removes all enchantments from the item stack.
+     * Removes all enchantments from the item.
      *
-     * @return the current ItemBuilder instance
+     * @return the current ItemBuilder instance for method chaining
      */
-    public ItemBuilder removeEnchantments() {
-        if (!isInvalidItemStack()) {
-            this.itemStack.removeEnchantments();
+    public ItemBuilder removeEnchants() {
+        this.itemMeta.removeEnchantments();
+        return this;
+    }
+
+    /**
+     * Checks if an enchantment conflicts with any existing enchantments on the item.
+     *
+     * @param enchantment the enchantment to check
+     * @return true if there is a conflict, false otherwise
+     */
+    public boolean hasConflictingEnchant(@NotNull Enchantment enchantment) {
+        return this.itemMeta.hasConflictingEnchant(enchantment);
+    }
+
+    /**
+     * Adds the specified item flags to the item.
+     * If HIDE_ATTRIBUTES are added and Paper API is available, default attributes are set.
+     *
+     * @param itemFlags the item flags to add
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder addItemFlags(@NotNull ItemFlag... itemFlags) {
+        Arrays.stream(itemFlags).toList().forEach(flag -> {
+            if (flag == ItemFlag.HIDE_ATTRIBUTES && LLibrary.hasPaperAPI()) {
+                if (this.itemMeta.getAttributeModifiers() == null) {
+                    for (EquipmentSlot slot : EquipmentSlot.values()) {
+                        getType().getDefaultAttributeModifiers(slot).forEach(this.itemMeta::addAttributeModifier);
+                    }
+                }
+            }
+        });
+
+        this.itemMeta.addItemFlags(itemFlags);
+        return this;
+    }
+
+    /**
+     * Removes the specified item flags from the item.
+     * If HIDE_ATTRIBUTES are removed and Paper API is available, default attributes are cleared.
+     *
+     * @param itemFlags the item flags to remove
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder removeItemFlags(@NotNull ItemFlag... itemFlags) {
+        Arrays.stream(itemFlags).toList().forEach(flag -> {
+            if (flag == ItemFlag.HIDE_ATTRIBUTES && LLibrary.hasPaperAPI()) {
+                Multimap<Attribute, AttributeModifier> mods = this.itemMeta.getAttributeModifiers();
+                if (mods == null) {
+                    return;
+                }
+
+                HashMultimap<Attribute, AttributeModifier> mods2 = HashMultimap.create();
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    mods2.putAll(getType().getDefaultAttributeModifiers(slot));
+                }
+
+                if (mods.equals(mods2)) {
+                    for (EquipmentSlot slot : EquipmentSlot.values()) {
+                        this.itemMeta.removeAttributeModifier(slot);
+                    }
+                }
+            }
+        });
+
+        this.itemMeta.removeItemFlags(itemFlags);
+        return this;
+    }
+
+    /**
+     * Hides all item flags from the item.
+     * If Paper API is available and the item has no attribute modifiers, default attributes are set.
+     *
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder hideAllItemFlags() {
+        if (LLibrary.hasPaperAPI() && this.itemMeta.getAttributeModifiers() == null) {
+            Arrays.stream(EquipmentSlot.values())
+                    .iterator()
+                    .forEachRemaining(slot
+                            -> getType()
+                            .getDefaultAttributeModifiers(slot)
+                            .forEach(this.itemMeta::addAttributeModifier));
         }
+
+        this.itemMeta.addItemFlags(ItemFlag.values());
         return this;
     }
 
     /**
-     * Checks if the item stack has damage resistance.
+     * Gets all item flags present on the item.
      *
-     * @return true if the item has damage resistance, false otherwise
+     * @return a set of item flags
      */
-    public boolean hasDamageResistant() {
-        return !isInvalidItemStack() && getItemMeta().hasDamageResistant();
+    public @NotNull Set<ItemFlag> getItemFlags() {
+        return this.itemMeta.getItemFlags();
     }
 
     /**
-     * Gets the damage resistance tag of the item stack.
+     * Checks if a specific item flag is present on the item.
      *
-     * @return the damage resistance tag, or null if the item stack is invalid or has no resistance
+     * @param flag the item flag to check for
+     * @return true if the item contains the specified flag, false otherwise
      */
-    @Nullable
-    public Tag<DamageType> getDamageResistant() {
-        return isInvalidItemStack() ? null : getItemMeta().getDamageResistant();
+    public boolean hasItemFlag(@NotNull ItemFlag flag) {
+        return this.itemMeta.hasItemFlag(flag);
     }
 
     /**
-     * Sets the damage resistance tag for the item stack.
+     * Checks if the item has tooltips hidden.
      *
-     * @param tag the damage resistance tag to set, or null to remove damage resistance
-     * @return the current ItemBuilder instance
+     * @return true if tooltips are hidden, false otherwise
      */
-    public ItemBuilder setDamageResistant(@Nullable Tag<DamageType> tag) {
-        if (isInvalidItemStack()) return this;
-        ItemMeta meta = getItemMeta();
-        meta.setDamageResistant(tag);
-        this.itemStack.setItemMeta(meta);
+    public boolean isHideTooltip() {
+        return this.itemMeta.isHideTooltip();
+    }
+
+    /**
+     * Sets whether tooltips should be hidden for the item.
+     *
+     * @param hideTooltip true to hide tooltips, false to show them
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setHideTooltip(boolean hideTooltip) {
+        this.itemMeta.setHideTooltip(hideTooltip);
         return this;
     }
 
     /**
-     * Retrieves a FireworkBuilder instance based on the current itemStack.
-     * <p>
-     * If the itemStack is invalid, this method returns {@code null}.
-     * Otherwise, it constructs and returns a new FireworkBuilder.
-     * </p>
+     * Checks if the item has a tooltip style.
      *
-     * @return a new {@link FireworkBuilder} if the itemStack is valid; {@code null} if invalid.
+     * @return true if the item has a tooltip style, false otherwise
      */
-    public FireworkBuilder getFireworkBuilder() {
-        if (isInvalidItemStack()) return null;
-        return new FireworkBuilder(this.itemStack);
+    public boolean hasTooltipStyle() {
+        return this.itemMeta.hasTooltipStyle();
     }
 
     /**
-     * Retrieves a FoodBuilder instance for the current item stack.
+     * Gets the tooltip style of the item.
      *
-     * @return a new FoodBuilder if the item stack is valid; otherwise, returns null.
+     * @return the tooltip style as a NamespacedKey, or null if not set
      */
-    public FoodBuilder getFoodBuilder() {
-        if (isInvalidItemStack()) return null;
-        return new FoodBuilder(this.itemStack);
+    public @Nullable NamespacedKey getTooltipStyle() {
+        return this.itemMeta.getTooltipStyle();
     }
 
     /**
-     * Sets whether the item should have an enchantment glint override.
+     * Sets the tooltip style of the item.
      *
-     * @param value true to enable enchantment glint override, false to disable
-     * @return the current ItemBuilder instance or null if the item stack is invalid
+     * @param tooltipStyle the NamespacedKey for the tooltip style, or null to remove it
+     * @return the current ItemBuilder instance for method chaining
      */
-    public ItemBuilder setEnchantmentGliderOverride(boolean value) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        meta.setEnchantmentGlintOverride(value);
-        this.itemStack.setItemMeta(meta);
+    public ItemBuilder setTooltipStyle(@Nullable NamespacedKey tooltipStyle) {
+        this.itemMeta.setTooltipStyle(tooltipStyle);
+        return this;
+    }
+
+    /**
+     * Sets the tooltip style of the item using a string.
+     * If the string does not contain a namespace, "minecraft" is used by default.
+     *
+     * @param value the string representing the tooltip style
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setTooltipStyle(@NotNull String value) {
+        return setTooltipStyle(NamespaceKey.from(value));
+    }
+
+    /**
+     * Checks if the item has a custom item model.
+     *
+     * @return true if the item has a custom item model, false otherwise
+     */
+    public boolean hasItemModel() {
+        return this.itemMeta.hasItemModel();
+    }
+
+    /**
+     * Gets the item model of the item.
+     *
+     * @return the item model as a NamespacedKey, or null if not set
+     */
+    public @Nullable NamespacedKey getItemModel() {
+        return this.itemMeta.getItemModel();
+    }
+
+    /**
+     * Sets the item model of the item.
+     *
+     * @param itemModel the NamespacedKey for the item model, or null to remove it
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setItemModel(@Nullable NamespacedKey itemModel) {
+        this.itemMeta.setItemModel(itemModel);
+        return this;
+    }
+
+    /**
+     * Sets the item model of the item using a string.
+     * If the string does not contain a namespace, "minecraft" is used by default.
+     *
+     * @param value the string representing the item model
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setItemModel(@NotNull String value) {
+        return setItemModel(NamespaceKey.from(value));
+    }
+
+    /**
+     * Checks if the item is unbreakable.
+     *
+     * @return true if the item is unbreakable, false otherwise
+     */
+    public boolean isUnbreakable() {
+        return this.itemMeta.isUnbreakable();
+    }
+
+    /**
+     * Sets the unbreakable status of the item.
+     *
+     * @param unbreakable true to make the item unbreakable, false otherwise
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setUnbreakable(boolean unbreakable) {
+        this.itemMeta.setUnbreakable(unbreakable);
         return this;
     }
 
@@ -626,939 +634,500 @@ public class ItemBuilder {
      *
      * @return true, if the item has an enchantment glint override, false otherwise
      */
-    public boolean hasEnchantmentGliderOverride() {
-        if (isInvalidItemStack()) return false;
-        return getItemMeta().getEnchantmentGlintOverride();
+    public boolean hasEnchantmentGlintOverride() {
+        return this.itemMeta.hasEnchantmentGlintOverride();
     }
 
     /**
-     * Sets the music instrument type for the item.
+     * Gets the enchantment glint override status of the item.
      *
-     * @param type the MusicInstrument to set
-     * @return the current ItemBuilder instance or null if the item stack is invalid
-     * @throws IllegalStateException if the item does not have MusicInstrumentMeta
+     * @return true if the glint is overridden, false if not, or null if unset
      */
-    public ItemBuilder setMusicInstrument(MusicInstrument type) {
-        if (isInvalidItemStack()) return null;
-        if (getItemMeta() instanceof MusicInstrumentMeta meta) {
-            meta.setInstrument(type);
-            this.itemStack.setItemMeta(meta);
-        } else {
-            throw new IllegalStateException("Required ItemStack has MusicInstrumentMeta!");
-        }
+    public @Nullable Boolean getEnchantmentGlintOverride() {
+        return this.itemMeta.getEnchantmentGlintOverride();
+    }
+
+    /**
+     * Sets or removes the enchantment glint override.
+     *
+     * @param override true to enable the glint, false to disable it, or null to remove the override
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setEnchantmentGlintOverride(@Nullable Boolean override) {
+        this.itemMeta.setEnchantmentGlintOverride(override);
         return this;
     }
 
     /**
-     * Gets the music instrument type of the item.
+     * Checks if the item is a glider.
      *
-     * @return the MusicInstrument of the item or null if the item stack is invalid
-     * @throws IllegalStateException if the item does not have MusicInstrumentMeta
+     * @return true if the item is a glider, false otherwise
      */
-    public MusicInstrument getMusicInstrument() {
-        if (isInvalidItemStack()) return null;
-        if (getItemMeta() instanceof MusicInstrumentMeta meta) {
-            return meta.getInstrument();
-        } else {
-            throw new IllegalStateException("Required ItemStack has MusicInstrumentMeta!");
-        }
+    public boolean isGlider() {
+        return this.itemMeta.isGlider();
     }
 
     /**
-     * Adds item flags to the item.
+     * Sets the glider status of the item.
      *
-     * @param flags the item flags to add
-     * @return the current ItemBuilder instance or null if the item stack is invalid
+     * @param glider true to make the item a glider, false otherwise
+     * @return the current ItemBuilder instance for method chaining
      */
-    public ItemBuilder setFlags(@NotNull ItemFlag... flags) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        for (ItemFlag flag : List.of(flags)) {
-            handleFlagChange(true, flag, this.itemStack, meta);
-        }
-        meta.addItemFlags(flags);
-        this.itemStack.setItemMeta(meta);
+    public ItemBuilder setGlider(boolean glider) {
+        this.itemMeta.setGlider(glider);
         return this;
     }
 
     /**
-     * Adds all possible item flags to the item.
+     * Checks if the item has damage resistance.
      *
-     * @return the current ItemBuilder instance or null if the item stack is invalid
+     * @return true if the item has damage resistance, false otherwise
      */
-    public ItemBuilder setAllFlags() {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        handleFlagsChange(this.itemStack, meta);
-        meta.addItemFlags(ItemFlag.values());
-        this.itemStack.setItemMeta(meta);
+    public boolean hasDamageResistant() {
+        return this.itemMeta.hasDamageResistant();
+    }
+
+    /**
+     * Gets the damage resistance tag of the item.
+     *
+     * @return the damage resistance tag as a Tag<DamageType>, or null if not set
+     */
+    public @Nullable Tag<DamageType> getDamageResistant() {
+        return this.itemMeta.getDamageResistant();
+    }
+
+    /**
+     * Sets the damage resistance tag of the item.
+     *
+     * @param tag the Tag<DamageType> for damage resistance, or null to remove it
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setDamageResistant(@Nullable Tag<DamageType> tag) {
+        this.itemMeta.setDamageResistant(tag);
         return this;
     }
 
     /**
-     * Removes item flags from the item.
+     * Checks if the item has a custom max stack size.
      *
-     * @param flags the item flags to remove
-     * @return the current ItemBuilder instance or null if the item stack is invalid
+     * @return true if the item has a custom max stack size, false otherwise
      */
-    public ItemBuilder removeFlags(@NotNull ItemFlag... flags) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        for (ItemFlag flag : List.of(flags)) {
-            handleFlagChange(false, flag, this.itemStack, meta);
-        }
-        meta.removeItemFlags(flags);
-        this.itemStack.setItemMeta(meta);
-        return this;
+    public boolean hasMaxStackSize() {
+        return this.itemMeta.hasMaxStackSize();
     }
 
     /**
-     * Checks if the item has a specific item flag.
+     * Gets the max stack size of the item.
      *
-     * @param flag the item flag to check
-     * @return true if the item has the flag, false otherwise
-     */
-    public boolean hasFlag(@NotNull ItemFlag flag) {
-        if (isInvalidItemStack()) return false;
-        return getItemMeta().hasItemFlag(flag);
-    }
-
-    /**
-     * Handles changes to item flags, specifically the HIDE_ATTRIBUTES flag.
-     *
-     * @param put  true to add attributes, false to remove them.
-     * @param flag the ItemFlag being modified.
-     * @param item the ItemStack whose attributes are being changed.
-     * @param meta the ItemMeta of the item.
-     */
-    private void handleFlagChange(boolean put, ItemFlag flag, ItemStack item, ItemMeta meta) {
-        if (!Util.hasPaperAPI()) {
-            return;
-        }
-        if (flag != ItemFlag.HIDE_ATTRIBUTES) {
-            return;
-        }
-        if (put) {
-            if (meta.getAttributeModifiers() != null) {
-                return;
-            }
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                item.getType().getDefaultAttributeModifiers(slot).forEach(meta::addAttributeModifier);
-            }
-            return;
-        }
-
-        Multimap<Attribute, AttributeModifier> mods = meta.getAttributeModifiers();
-        if (mods == null) {
-            return;
-        }
-
-        HashMultimap<Attribute, AttributeModifier> mods2 = HashMultimap.create();
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            mods2.putAll(item.getType().getDefaultAttributeModifiers(slot));
-        }
-
-        if (mods.equals(mods2)) {
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                meta.removeAttributeModifier(slot);
-            }
-        }
-    }
-
-    /**
-     * Ensures that default attribute modifiers are added to the item if none exist.
-     *
-     * @param item the ItemStack whose attributes are being updated.
-     * @param meta the ItemMeta of the item.
-     */
-    private void handleFlagsChange(ItemStack item, ItemMeta meta) {
-        if (!Util.hasPaperAPI()) {
-            return;
-        }
-        if (meta.getAttributeModifiers() != null) {
-            return;
-        }
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            item.getType().getDefaultAttributeModifiers(slot).forEach(meta::addAttributeModifier);
-        }
-    }
-
-    /**
-     * Toggles the hiding of item tooltips.
-     *
-     * @param value true to hide tooltips, false to show them
-     * @return the current ItemBuilder instance or null if the item stack is invalid
-     */
-    public ItemBuilder hideToolTip(boolean value) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        meta.setHideTooltip(value);
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Checks if item tooltips are hidden.
-     *
-     * @return true if tooltips are hidden, false otherwise
-     */
-    public boolean isHideToolTip() {
-        if (isInvalidItemStack()) return false;
-        return getItemMeta().isHideTooltip();
-    }
-
-    /**
-     * Sets the custom item model using a NamespacedKey.
-     *
-     * @param key the NamespacedKey representing the item model.
-     * @return the current ItemBuilder instance, or null if the ItemStack is invalid.
-     */
-    public ItemBuilder setItemModel(@Nullable NamespacedKey key) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        meta.setItemModel(key);
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Sets the custom item model using a namespace and key.
-     *
-     * @param key  the namespace of the item model.
-     * @param name the key representing the item model.
-     * @return the current ItemBuilder instance.
-     */
-    public ItemBuilder setItemModel(@NotNull String key, @NotNull String name) {
-        return setItemModel(new NamespacedKey(key, name));
-    }
-
-    /**
-     * Sets the custom item model using the "minecraft" namespace and a key.
-     *
-     * @param name the key representing the item model.
-     * @return the current ItemBuilder instance.
-     */
-    public ItemBuilder setItemModel(@NotNull String name) {
-        return setItemModel(new NamespacedKey(NamespacedKey.MINECRAFT, name));
-    }
-
-    /**
-     * Replaces all occurrences of a string in the item lore.
-     *
-     * @param from the string to be replaced
-     * @param to the replacement string
-     * @return this ItemBuilder instance, or null if the item stack is invalid
-     */
-    public ItemBuilder loreReplace(String from, String to) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
-
-        from = UtilsString.fix(from, null, true);
-        to = UtilsString.fix(to, null, true);
-        String finalFrom = from;
-        String finalTo = to;
-        lore.replaceAll(line -> line.replace(finalFrom, finalTo));
-
-        meta.setLore(lore);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Copies the lore from another ItemStack.
-     *
-     * @param target the ItemStack to copy lore from
-     * @return this ItemBuilder instance, or null if the item stack or target is invalid
-     */
-    public ItemBuilder loreCopyFrom(ItemStack target) {
-        if (isInvalidItemStack() || target == null) return null;
-        ItemMeta targetMeta = target.getItemMeta();
-        if (targetMeta == null || !targetMeta.hasLore() || targetMeta.getLore() == null) return null;
-
-        ItemMeta meta = getItemMeta();
-        meta.setLore(new ArrayList<>(targetMeta.getLore()));
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Copies lore from a book's pages.
-     *
-     * @param book the book ItemStack to copy pages from
-     * @return this ItemBuilder instance, or null if the item stack or book is invalid
-     */
-    public ItemBuilder loreCopyFromBook(ItemStack book) {
-        if (isInvalidItemStack() || !(book.getItemMeta() instanceof BookMeta bookMeta)) {
-            return null;
-        }
-
-        List<String> lore = bookMeta.getPages().stream()
-                .filter(Objects::nonNull)
-                .flatMap(page -> Arrays.stream(page.split("\n")))
-                .map(Util::formatText)
-                .toList();
-
-        ItemMeta meta = getItemMeta();
-        meta.setLore(lore);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Adds new lines to the lore.
-     *
-     * @param texts the lines to add
-     * @return this ItemBuilder instance, or null if the item stack is invalid or texts are null/empty
-     */
-    public ItemBuilder loreAdd(String... texts) {
-        if (isInvalidItemStack() || texts == null || texts.length == 0) return null;
-        ItemMeta meta = getItemMeta();
-        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
-
-        Arrays.stream(texts).map(Util::formatText).forEach(lore::add);
-        meta.setLore(lore);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Inserts a line at a specific index in the lore.
-     *
-     * @param line the index to insert at
-     * @param text the line to insert
-     * @return this ItemBuilder instance
-     * @throws IllegalArgumentException if the line is negative
-     */
-    public ItemBuilder loreInsert(int line, String text) {
-        if (isInvalidItemStack() || line < 0) throw new IllegalArgumentException("Invalid line number");
-        ItemMeta meta = getItemMeta();
-        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
-
-        while (lore.size() <= line) lore.add("");
-        lore.add(line, Util.formatText(text));
-
-        meta.setLore(lore);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Sets a specific line in the lore.
-     *
-     * @param line the index to set
-     * @param text the new line content
-     * @return this ItemBuilder instance
-     * @throws IllegalArgumentException if the line is negative
-     */
-    public ItemBuilder loreSet(int line, String text) {
-        if (isInvalidItemStack() || line < 0) throw new IllegalArgumentException("Invalid line number");
-        ItemMeta meta = getItemMeta();
-        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
-
-        while (lore.size() <= line) lore.add("");
-        lore.set(line, Util.formatText(text));
-
-        meta.setLore(lore);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Sets multiple lines of lore.
-     *
-     * @param lores the list of lines to set as lore
-     * @return this ItemBuilder instance
-     */
-    public ItemBuilder loresSet(List<String> lores) {
-        if (isInvalidItemStack()) return null;
-        if (lores == null) return this;
-        ItemMeta meta = getItemMeta();
-        List<String> formattedLores = lores.stream().map(Util::formatText).toList();
-
-        meta.setLore(formattedLores);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Removes a specific line from the lore.
-     *
-     * @param line the index of the line to remove (1-based index)
-     * @return this ItemBuilder instance
-     * @throws IllegalArgumentException if line is less than or equal to 0
-     */
-    public ItemBuilder loreRemove(int line) {
-        if (isInvalidItemStack() || line <= 0) throw new IllegalArgumentException("Invalid line number");
-        ItemMeta meta = getItemMeta();
-        List<String> lore = Optional.ofNullable(meta.getLore()).orElse(new ArrayList<>());
-
-        if (line - 1 < lore.size()) lore.remove(line - 1);
-
-        meta.setLore(lore.isEmpty() ? null : lore);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Clears all lore.
-     *
-     * @return this ItemBuilder instance
-     */
-    public ItemBuilder loreReset() {
-        if (isInvalidItemStack()) return this;
-        ItemMeta meta = getItemMeta();
-        meta.setLore(null);
-        itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Sets the maximum stack size for this ItemStack.
-     *
-     * @param amount The maximum stack size, clamped between 0 and 99.
-     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid.
-     */
-    public ItemBuilder setMaxStackSize(int amount) {
-        if (isInvalidItemStack()) return null;
-        amount = Math.max(0, Math.min(amount, 99));
-        ItemMeta meta = getItemMeta();
-        meta.setMaxStackSize(amount);
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Gets the maximum stack size of this ItemStack.
-     *
-     * @return The maximum stack size, or {@code 0} if the ItemStack is invalid.
+     * @return the max stack size, or the default stack size if not set
      */
     public int getMaxStackSize() {
-        if (isInvalidItemStack()) return 0;
-        return getItemMeta().getMaxStackSize();
+        return hasMaxStackSize() ? this.itemMeta.getMaxStackSize() : getType().getMaxStackSize();
     }
 
     /**
-     * Removes a specific potion effect from the ItemStack.
+     * Sets the max stack size of the item.
      *
-     * @param effect The potion effect types to remove.
-     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
+     * @param max the new max stack size, or null to reset to the default stack size
+     * @return the current ItemBuilder instance for method chaining
+     * @throws IllegalArgumentException if the max stack size is not between 1 and 99
      */
-    public ItemBuilder removePotionEffect(@NotNull PotionEffectType effect) {
-        if (isInvalidItemStack() || !hasPotionEffectMeta()) return null;
-
-        ItemMeta meta = getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) {
-            potionMeta.removeCustomEffect(effect);
-        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
-            stewMeta.removeCustomEffect(effect);
-        }
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Adds a custom potion effect to the ItemStack.
-     *
-     * @param effect The potion effect type to add.
-     * @param durationInSeconds The duration of the effect in seconds.
-     * @param level The amplifier level of the effect (0-127).
-     * @param particles Whether the effect should show particles.
-     * @param ambient Whether the effect is considered ambient.
-     * @param icon Whether the effect should show an icon.
-     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
-     * @throws IllegalArgumentException if the level is not between 0 and 127.
-     */
-    public ItemBuilder addPotionEffect(@NotNull PotionEffectType effect, int durationInSeconds, int level, boolean particles, boolean ambient, boolean icon) {
-        if (isInvalidItemStack() || !hasPotionEffectMeta()) return null;
-
-        if (level < 0 || level > 127)
-            throw new IllegalArgumentException("Potion effect level must be between 0 and 127.");
-
-        int durationInTicks = durationInSeconds >= 0 ? durationInSeconds * 20 : Integer.MAX_VALUE;
-        PotionEffect potionEffect = new PotionEffect(effect, durationInTicks, level, ambient, particles, icon);
-
-        ItemMeta meta = getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) {
-            potionMeta.addCustomEffect(potionEffect, true);
-        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
-            stewMeta.addCustomEffect(potionEffect, true);
-        }
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Clears all custom potion effects from the ItemStack.
-     *
-     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid or does not have potion effect metadata.
-     */
-    public ItemBuilder clearPotionEffects() {
-        if (isInvalidItemStack() || !hasPotionEffectMeta()) return null;
-
-        ItemMeta meta = getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) {
-            potionMeta.clearCustomEffects();
-        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
-            stewMeta.clearCustomEffects();
-        }
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Retrieves the list of custom potion effects on the ItemStack.
-     *
-     * @return A list of PotionEffects, or an empty list if the ItemStack is invalid or does not have potion effect metadata.
-     */
-    public List<PotionEffect> getPotionEffects() {
-        if (isInvalidItemStack() || !hasPotionEffectMeta()) return Collections.emptyList();
-
-        ItemMeta meta = getItemMeta();
-        if (meta instanceof PotionMeta potionMeta) {
-            return potionMeta.getCustomEffects();
-        } else if (meta instanceof SuspiciousStewMeta stewMeta) {
-            return stewMeta.getCustomEffects();
-        }
-        return Collections.emptyList();
-    }
-
-    /**
-     * Sets the rarity of the ItemStack.
-     *
-     * @param rarity The ItemRarity to set.
-     * @return {@code this} for method chaining, or {@code null} if the ItemStack is invalid.
-     */
-    public ItemBuilder setRarity(@NotNull ItemRarity rarity) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        meta.setRarity(rarity);
-        this.itemStack.setItemMeta(meta);
-        return this;
-    }
-
-    /**
-     * Gets the rarity of the ItemStack.
-     *
-     * @return The ItemRarity of the ItemStack, or {@code null} if the ItemStack is invalid.
-     */
-    public ItemRarity getRarity() {
-        if (isInvalidItemStack()) return null;
-        return getItemMeta().getRarity();
-    }
-
-    /**
-     * Sets the display name of the ItemStack.
-     *
-     * @param name The new display name for the ItemStack.
-     *             <ul>
-     *                 <li>If {@code null} or "clear" (case-insensitive), the display name is removed (reset to default).</li>
-     *                 <li>If empty or blank, the display name is set to white.</li>
-     *                 <li>Otherwise, the name is formatted using {@link Util#formatText(String)} and color codes are translated.</li>
-     *             </ul>
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     */
-    public ItemBuilder rename(@Nullable String name) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-
-        if (name == null || name.equalsIgnoreCase("clear")) {
-            meta.setDisplayName(null);
-            this.itemStack.setItemMeta(meta);
+    public ItemBuilder setMaxStackSize(@Nullable Integer max) {
+        if (max == null) {
+            this.itemMeta.setMaxStackSize(getType().getMaxStackSize());
             return this;
         }
-
-        if (name.isBlank() || name.isEmpty()) {
-            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&f"));
-            this.itemStack.setItemMeta(meta);
-            return this;
-        }
-
-        name = StringUtil.format(name, null);
-        meta.setDisplayName(name);
-        this.itemStack.setItemMeta(meta);
+        if (max < 1 || max > 99)
+            throw new IllegalArgumentException("The max stack size must be between 1 and 99 -> " + max);
+        this.itemMeta.setMaxStackSize(max);
         return this;
     }
 
     /**
-     * Gets the display name of the ItemStack in MiniMessage format.
+     * Checks if the item has a custom rarity.
      *
-     * @return The display name converted to MiniMessage format, or {@code null} if the ItemStack is invalid.
+     * @return true if the item has a custom rarity, false otherwise
      */
-    public String getDisplayName() {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        Component component = MinecraftComponentSerializer.get().deserialize(meta.getDisplayName()).asComponent();
-        return MiniMessage.miniMessage().serialize(component);
+    public boolean hasRarity() {
+        return this.itemMeta.hasRarity();
     }
 
     /**
-     * Sets the repair cost of the ItemStack.
+     * Gets the rarity of the item.
      *
-     * @param cost The repair cost to set.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @return the item's rarity, or ItemRarity. COMMON if not set
      */
-    public ItemBuilder setRepairCost(int cost) {
-        if (isInvalidItemStack()) return null;
-        Repairable meta = (Repairable) getItemMeta();
-        meta.setRepairCost(cost);
-        this.itemStack.setItemMeta(meta);
+    public @NotNull ItemRarity getRarity() {
+        return hasRarity() ? this.itemMeta.getRarity() : ItemRarity.COMMON;
+    }
+
+    /**
+     * Sets the rarity of the item.
+     *
+     * @param rarity the ItemRarity to set, or null to remove the custom rarity
+     * @return the current ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setRarity(@Nullable ItemRarity rarity) {
+        this.itemMeta.setRarity(rarity);
         return this;
     }
 
     /**
-     * Gets the repair cost of the ItemStack.
+     * Checks if the item has a use remainder.
      *
-     * @return The repair cost, or {@code 0} if the ItemStack is invalid.
+     * @return true if the item has a use remainder, false otherwise.
      */
-    public int getRepairCost() {
-        if (isInvalidItemStack()) return 0;
-        return ((Repairable) getItemMeta()).getRepairCost();
+    public boolean hasUseRemainder() {
+        return this.itemMeta.hasUseRemainder();
     }
 
     /**
-     * Sets the tooltip style of the ItemStack.
+     * Gets the item that remains after using this item, if any.
      *
-     * @param value The tooltip style to set. Use "clear" to reset the tooltip style to default.
-     *              Format can be either "namespace:key" or "key" (which defaults to the "minecraft" namespace).
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
+     * @return the remainder ItemStack, or null if there is none.
      */
-    public ItemBuilder setToolTipStyle(String value) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        if (value.equalsIgnoreCase("clear")) {
-            meta.setTooltipStyle(null);
-            this.itemStack.setItemMeta(meta);
-            return this;
-        }
-        String pre;
-        String post;
-        if (!value.contains(":")) {
-            pre = NamespacedKey.MINECRAFT;
-            post = value;
-        } else {
-            pre = value.split(":")[0];
-            post = value.split(":")[1];
-        }
-        meta.setTooltipStyle(new NamespacedKey(pre, post));
-        this.itemStack.setItemMeta(meta);
+    public @Nullable ItemStack getUseRemainder() {
+        return this.itemMeta.getUseRemainder();
+    }
+
+    /**
+     * Sets the item that will remain after using this item.
+     *
+     * @param remainder the ItemStack to set as the use remainder, or null to remove it.
+     * @return the current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder setUseRemainder(@Nullable ItemStack remainder) {
+        this.itemMeta.setUseRemainder(remainder);
         return this;
     }
 
     /**
-     * Gets the tooltip style of the ItemStack.
+     * Checks if the item has a use cooldown component.
      *
-     * @return The tooltip style as a {@link NamespacedKey}, or {@code null} if the ItemStack is invalid or has no tooltip style set.
+     * @return true if the item has a use cooldown, false otherwise.
      */
-    public NamespacedKey getToolTipStyle() {
-        if (isInvalidItemStack()) return null;
-        return getItemMeta().getTooltipStyle();
+    public boolean hasUseCooldownComponent() {
+        return this.itemMeta.hasUseCooldown();
     }
 
     /**
-     * Sets the armor trim of the ItemStack using the specified trim material and pattern.
+     * Gets the cooldown component associated with this item, or creates an empty cooldown instance.
      *
-     * @param trimMaterial The material to use for the armor trim. Must not be null.
-     * @param trimPattern The pattern to use for the armor trim. Must not be null.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link ArmorMeta}.
+     * @return the UseCooldownComponent set on this item, or creates an empty cooldown instance.
      */
-    public ItemBuilder trimArmor(@NotNull TrimMaterial trimMaterial, @NotNull TrimPattern trimPattern) {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof ArmorMeta meta))
-            throw new IllegalStateException("The ItemStack must have ArmorMeta!");
-        meta.setTrim(new ArmorTrim(trimMaterial, trimPattern));
-        this.itemStack.setItemMeta(meta);
+    public @NotNull UseCooldownComponent getUseCooldownComponent() {
+        return this.itemMeta.getUseCooldown();
+    }
+
+    /**
+     * Sets the cooldown component for this item.
+     *
+     * @param cooldown the UseCooldownComponent to set, or null to remove the cooldown.
+     * @return the current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder setUseCooldownComponent(@Nullable UseCooldownComponent cooldown) {
+        this.itemMeta.setUseCooldown(cooldown);
         return this;
     }
 
     /**
-     * Gets the armor trim of the ItemStack.
+     * Sets a custom use cooldown for this item.
      *
-     * @return The {@link ArmorTrim} of the ItemStack, or {@code null} if the ItemStack is invalid or has no trim set.
-     * @throws IllegalStateException if the ItemStack does not have {@link ArmorMeta}.
+     * @param cooldownSeconds the cooldown duration in seconds.
+     * @param cooldownGroup the NamespacedKey representing the cooldown group.
+     * @return the current ItemBuilder instance for chaining.
      */
-    public ArmorTrim getArmorTrim() {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof ArmorMeta meta))
-            throw new IllegalStateException("The ItemStack must have ArmorMeta!");
-        return meta.getTrim();
+    public ItemBuilder setUseCooldownComponent(float cooldownSeconds, @NotNull NamespacedKey cooldownGroup) {
+        return setUseCooldownComponent(new CustomUseCooldownComponent(cooldownSeconds, cooldownGroup));
     }
 
     /**
-     * Sets the body color of the tropical fish in the ItemStack.
+     * Creates and sets a custom use cooldown for this item using a string value for the namespace key.
      *
-     * @param color The body color to set. Must not be null.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     * @param cooldownSeconds the cooldown duration in seconds.
+     * @param keyValue the string representation of the NamespacedKey.
+     * @return the current ItemBuilder instance for chaining.
      */
-    public ItemBuilder setTropicalFishBodyColor(@NotNull DyeColor color) {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
-            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
-        meta.setBodyColor(color);
-        this.itemStack.setItemMeta(meta);
+    public ItemBuilder setUseCooldownComponent(float cooldownSeconds, @NotNull String keyValue) {
+        return setUseCooldownComponent(new CustomUseCooldownComponent(cooldownSeconds, NamespaceKey.from(keyValue)));
+    }
+
+    /**
+     * Checks if the item has a food component.
+     *
+     * @return true if the item has a food component, false otherwise.
+     */
+    public boolean hasFoodComponent() {
+        return this.itemMeta.hasFood();
+    }
+
+    /**
+     * Gets the food component associated with this item, or creates an empty food instance.
+     *
+     * @return the FoodComponent, or creates an empty food instance.
+     */
+    public @NotNull FoodComponent getFoodComponent() {
+        return this.itemMeta.getFood();
+    }
+
+    /**
+     * Sets the food component for this item.
+     *
+     * @param food the FoodComponent to set, or null to remove it.
+     * @return the current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder setFoodComponent(@Nullable FoodComponent food) {
+        this.itemMeta.setFood(food);
         return this;
     }
 
     /**
-     * Gets the body color of the tropical fish in the ItemStack.
+     * Creates and sets a custom food component for this item.
      *
-     * @return The {@link DyeColor} of the tropical fish's body, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     * @param nutrition the amount of nutrition the food provides.
+     * @param saturation the saturation modifier of the food.
+     * @param canEatOnFull whether the food can be eaten even if the player is not hungry.
+     * @return the current ItemBuilder instance for chaining.
      */
-    public DyeColor getTropicalFishBodyColor() {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
-            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
-        return meta.getBodyColor();
+    public ItemBuilder setFood(int nutrition, float saturation, boolean canEatOnFull) {
+        return setFoodComponent(new CustomFoodComponent(nutrition, saturation, canEatOnFull));
     }
 
     /**
-     * Sets the pattern color of the tropical fish in the ItemStack.
+     * Checks if the item has a {@link ToolComponent} attached.
      *
-     * @param color The pattern color to set. Must not be null.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     * @return true if the item has a ToolComponent, false otherwise
      */
-    public ItemBuilder setTropicalFishPatternColor(@NotNull DyeColor color) {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
-            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
-        meta.setPatternColor(color);
-        this.itemStack.setItemMeta(meta);
+    public boolean hasToolComponent() {
+        return this.itemMeta.hasTool();
+    }
+
+    /**
+     * Gets the {@link ToolComponent} of the item.
+     *
+     * @return the ToolComponent associated with this item
+     * @throws NullPointerException if the item does not have a ToolComponent
+     */
+    public @NotNull ToolComponent getToolComponent() {
+        return this.itemMeta.getTool();
+    }
+
+    /**
+     * Sets the {@link ToolComponent} for the item.
+     *
+     * @param tool the ToolComponent to set, or null to remove the existing ToolComponent
+     * @return this ItemBuilder instance for method chaining
+     */
+    public ItemBuilder setToolComponent(@Nullable ToolComponent tool) {
+        this.itemMeta.setTool(tool);
         return this;
     }
 
     /**
-     * Gets the pattern color of the tropical fish in the ItemStack.
+     * Creates and sets a new {@link CustomToolComponent} for the item
+     * with the specified default mining speed and damage per block.
      *
-     * @return The {@link DyeColor} of the tropical fish's pattern, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     * @param defaultMiningSpeed the default mining speed of the tool
+     * @param damagePerBlock the amount of damage the tool takes per block broken
+     * @return this ItemBuilder instance for method chaining
      */
-    public DyeColor getTropicalFishPatternColor() {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
-            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
-        return meta.getPatternColor();
+    public ItemBuilder setToolComponent(float defaultMiningSpeed, int damagePerBlock) {
+        return setToolComponent(new CustomToolComponent(defaultMiningSpeed, damagePerBlock));
     }
 
     /**
-     * Sets the pattern of the tropical fish in the ItemStack.
+     * Checks whether the item has an equippable component.
      *
-     * @param pattern The pattern to set. Must not be null.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     * @return true if the item has an equippable component, false otherwise
      */
-    public ItemBuilder setTropicalFishPattern(@NotNull TropicalFish.Pattern pattern) {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
-            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
-        meta.setPattern(pattern);
-        this.itemStack.setItemMeta(meta);
+    public boolean hasEquippableComponent() {
+        return this.itemMeta.hasEquippable();
+    }
+
+    /**
+     * Gets the equippable component of the item.
+     *
+     * @return the equippable component, never null
+     */
+    public @NotNull EquippableComponent getEquippableComponent() {
+        return this.itemMeta.getEquippable();
+    }
+
+    /**
+     * Sets the equippable component for the item.
+     *
+     * @param equippable the equippable component to set, or null to remove it
+     * @return the current ItemBuilder instance for chaining
+     */
+    public ItemBuilder setEquippableComponent(@Nullable EquippableComponent equippable) {
+        this.itemMeta.setEquippable(equippable);
         return this;
     }
 
     /**
-     * Gets the pattern of the tropical fish in the ItemStack.
+     * Creates and sets a custom equippable component for the item using the specified equipment slot.
      *
-     * @return The {@link TropicalFish.Pattern} of the tropical fish, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalStateException if the ItemStack does not have {@link TropicalFishBucketMeta}.
+     * @param equipmentSlot the slot where the item can be equipped
+     * @return the current ItemBuilder instance for chaining
      */
-    public TropicalFish.Pattern getTropicalFishPattern() {
-        if (isInvalidItemStack()) return null;
-        if (!(getItemMeta() instanceof TropicalFishBucketMeta meta))
-            throw new IllegalStateException("The ItemStack must have TropicalFishBucketMeta!");
-        return meta.getPattern();
+    public ItemBuilder setEquippableComponent(EquipmentSlot equipmentSlot) {
+        return setEquippableComponent(new CustomEquippableComponent(equipmentSlot));
     }
 
     /**
-     * Sets the type of the ItemStack.
+     * Checks if the item has a JukeboxPlayableComponent.
      *
-     * @param type The material type to set. Must not be null or {@link Material#AIR}.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     * @throws IllegalArgumentException if the provided material type is {@link Material#AIR}.
+     * @return true if the item has a JukeboxPlayableComponent, false otherwise
      */
-    public ItemBuilder setType(Material type) {
-        if (isInvalidItemStack()) return null;
-        if (type == Material.AIR)
-            throw new IllegalArgumentException("The ItemStack can't be air!");
-        this.itemStack.setType(type);
+    public boolean hasJukeboxPlayableComponent() {
+        return this.itemMeta.hasJukeboxPlayable();
+    }
+
+    /**
+     * Gets the JukeboxPlayableComponent of the item.
+     *
+     * @return the JukeboxPlayableComponent, or null if not present
+     */
+    public @Nullable JukeboxPlayableComponent getJukeboxPlayableComponent() {
+        return this.itemMeta.getJukeboxPlayable();
+    }
+
+    /**
+     * Sets the JukeboxPlayableComponent of the item.
+     *
+     * @param jukeboxPlayable the JukeboxPlayableComponent to set, or null to remove it
+     * @return the current ItemBuilder instance for chaining
+     */
+    public ItemBuilder setJukeboxPlayableComponent(@Nullable JukeboxPlayableComponent jukeboxPlayable) {
+        this.itemMeta.setJukeboxPlayable(jukeboxPlayable);
         return this;
     }
 
     /**
-     * Gets the type of the ItemStack.
+     * Creates and sets a custom JukeboxPlayableComponent using a song key, song, and tooltip visibility.
      *
-     * @return The {@link Material} type of the ItemStack.
+     * @param songKey      the key identifying the song
+     * @param jukeboxSong  the JukeboxSong to be played
+     * @param showInTooltip whether the song should be shown in the item's tooltip
+     * @return the current ItemBuilder instance for chaining
      */
-    public Material getType() {
-        return this.itemStack.getType();
+    public ItemBuilder setJukeboxPlayableComponent(NamespacedKey songKey, JukeboxSong jukeboxSong, boolean showInTooltip) {
+        return setJukeboxPlayableComponent(new CustomJukeboxPlayableComponent(songKey, jukeboxSong, showInTooltip));
     }
 
     /**
-     * Sets the texture of the skull item to the given texture.
-     * <p>
-     * This method modifies the NBT data of the item to set the texture for a PLAYER_HEAD item.
-     * If the item is invalid or not a PLAYER_HEAD, it returns {@code null}.
+     * Creates and sets a custom JukeboxPlayableComponent using a key value string, song, and tooltip visibility.
      *
-     * @param texture The texture strings to be set for the skull. This should be the base64-encoded texture value.
-     * @return The current {@link ItemBuilder} instance to allow method chaining,
-     * or {@code null} if the item is invalid or not a PLAYER_HEAD.
+     * @param keyValue     the string representation of the song's key (to be converted to a NamespacedKey)
+     * @param jukeboxSong  the JukeboxSong to be played
+     * @param showInTooltip whether the song should be shown in the item's tooltip
+     * @return the current ItemBuilder instance for chaining
      */
-    public ItemBuilder setSkullTexture(String texture) {
-        if (isInvalidItemStack() || getType() != Material.PLAYER_HEAD) return null;
+    public ItemBuilder setJukeboxPlayableComponent(String keyValue, JukeboxSong jukeboxSong, boolean showInTooltip) {
+        return setJukeboxPlayableComponent(new CustomJukeboxPlayableComponent(NamespaceKey.from(keyValue), jukeboxSong, showInTooltip));
+    }
 
-        NBT.modifyComponents(this.itemStack, nbt -> {
-            ReadWriteNBT profileNbt = nbt.getOrCreateCompound("minecraft:profile");
-            profileNbt.setUUID("id", UUID.randomUUID());
+    /**
+     * Checks if the ItemMeta has any attribute modifiers.
+     *
+     * @return true if attribute modifiers exist, false otherwise.
+     */
+    public boolean hasAttributeModifiers() {
+        return this.itemMeta.hasAttributeModifiers();
+    }
 
-            // Retrieve or create the 'properties' list
-            ReadWriteNBTCompoundList propertiesList = profileNbt.getCompoundList("properties");
+    /**
+     * Return an immutable copy of all Attributes and their modifiers in this ItemMeta.
+     * Returns null if none exist.
+     *
+     * @return A Multimap containing attributes and their respective modifiers, or null if none exist.
+     */
+    public @Nullable Multimap<Attribute, AttributeModifier> getAttributeModifiers() {
+        return this.itemMeta.getAttributeModifiers();
+    }
 
-            // Look for an existing texture compound
-            ReadWriteNBT textureCompound = null;
-            for (ReadWriteNBT compound : propertiesList) {
-                if ("textures".equals(compound.getString("name"))) {
-                    textureCompound = compound;
-                    break;
-                }
-            }
+    /**
+     * Return an immutable copy of all {@link Attribute}s and their {@link AttributeModifier}s for a given {@link EquipmentSlot}.
+     * Any {@link AttributeModifier} that does have a given {@link EquipmentSlot} will be returned. This is because {@link AttributeModifier}s without a slot are active in any slot.
+     * If there are no attributes set for the given slot, an empty map will be returned.
+     *
+     * @param slot The EquipmentSlot to filter attribute modifiers for.
+     * @return A non-null Multimap containing attributes and their modifiers for the specified slot.
+     */
+    public @NotNull Multimap<Attribute, AttributeModifier> getAttributeModifiers(@NotNull EquipmentSlot slot) {
+        return this.itemMeta.getAttributeModifiers(slot);
+    }
 
-            if (textureCompound != null) {
-                textureCompound.setString("value", texture); // Update the existing texture
-            } else {
-                // Add a new texture compound
-                ReadWriteNBT newTextureCompound = propertiesList.addCompound();
-                newTextureCompound.setString("name", "textures");
-                newTextureCompound.setString("value", texture);
-            }
-        });
+    /**
+     * Return an immutable copy of all {@link AttributeModifier}s for a given {@link Attribute}
+     *
+     * @param attribute The Attribute to retrieve modifiers for.
+     * @return A collection of AttributeModifiers associated with the given attribute, or null if none exist.
+     */
+    public @Nullable Collection<AttributeModifier> getAttributeModifiers(@NotNull Attribute attribute) {
+        return this.itemMeta.getAttributeModifiers(attribute);
+    }
 
+    /**
+     * Add an Attribute and it's Modifier.
+     * AttributeModifiers can now support {@link EquipmentSlot}s.
+     * If not set, the {@link AttributeModifier} will be active in ALL slots.
+     * Two {@link AttributeModifier}s that have the same {@link UUID} cannot exist on the same Attribute.
+     *
+     * @param attribute The Attribute to modify.
+     * @param modifier The AttributeModifier specifying the modification.
+     * @return The current ItemBuilder instance for method chaining.
+     */
+    public ItemBuilder addAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
+        this.itemMeta.addAttributeModifier(attribute, modifier);
         return this;
     }
 
     /**
-     * Retrieves the current texture of the skull item.
-     * <p>
-     * This method checks the NBT data of the item for a "textures" property and returns
-     * its value if found.
-     * If the profile or texture is not available, it returns "NONE".
-     * If the item is invalid or not a PLAYER_HEAD, it returns {@code null}.
+     * Set all {@link Attribute}s and their {@link AttributeModifier}s.
+     * To clear all currently set Attributes and AttributeModifiers use null or an empty Multimap.
+     * If not null nor empty, this will filter all entries that are not null and add them to the ItemStack.
      *
-     * @return The texture string of the skull, or "NONE" if no texture is found or if the item is invalid,
-     *         or {@code null} if the item is not a PLAYER_HEAD.
+     * @param attributeModifiers The new Multimap of attributes and their modifiers, or null to clear all modifiers.
+     * @return The current ItemBuilder instance for method chaining.
      */
-    public @Nullable String getSkullTexture() {
-        if (isInvalidItemStack() || getType() != Material.PLAYER_HEAD) return null;
-
-        return NBT.modifyComponents(this.itemStack, nbt -> {
-            ReadWriteNBT profileNbt = nbt.getCompound("minecraft:profile");
-            if (profileNbt == null) return null; // Return null if the profile is missing
-
-            // Get the 'properties' list (no casting needed)
-            ReadWriteNBTCompoundList propertiesList = profileNbt.getCompoundList("properties");
-            if (propertiesList == null || propertiesList.isEmpty()) return null;
-
-            ReadWriteNBT propertiesNbt = propertiesList.get(0);
-            return propertiesNbt.getOrDefault("value", "NONE"); // Return "NONE" if the texture is not found
-        });
-    }
-
-    /**
-     * Removes the texture data from the skull item.
-     * <p>
-     * This method removes the "minecraft:profile" NBT tag, which contains the skull's texture data.
-     * If the item is invalid or not a PLAYER_HEAD, it returns {@code null}.
-     *
-     * @return The current {@link ItemBuilder} instance to allow method chaining,
-     * or {@code null} if the item is invalid or not a PLAYER_HEAD.
-     */
-    public ItemBuilder removeSkullTexture() {
-        if (isInvalidItemStack() || getType() != Material.PLAYER_HEAD) return null;
-
-        NBT.modifyComponents(this.itemStack, nbt -> {
-            // Remove the 'minecraft:profile' key if it exists
-            if (nbt.hasTag("minecraft:profile")) {
-                nbt.removeKey("minecraft:profile");
-            }
-        });
-
-        return this;
-    }
-
-
-
-    /**
-     * Sets whether the ItemStack is unbreakable.
-     *
-     * @param value {@code true} to make the ItemStack unbreakable, {@code false} to allow it to break.
-     * @return The current ItemBuilder instance for method chaining, or {@code null} if the ItemStack is invalid.
-     */
-    public ItemBuilder setUnbreakable(boolean value) {
-        if (isInvalidItemStack()) return null;
-        ItemMeta meta = getItemMeta();
-        meta.setUnbreakable(value);
-        this.itemStack.setItemMeta(meta);
+    public ItemBuilder setAttributeModifiers(@Nullable Multimap<Attribute, AttributeModifier> attributeModifiers) {
+        this.itemMeta.setAttributeModifiers(attributeModifiers);
         return this;
     }
 
     /**
-     * Checks if the ItemStack is unbreakable.
+     * Remove all {@link AttributeModifier}s associated with the given {@link Attribute}.
      *
-     * @return {@code true} if the ItemStack is unbreakable, {@code false} if it can break or if the ItemStack is invalid.
+     * @param attribute The Attribute to remove all modifiers for.
+     * @return The current ItemBuilder instance for method chaining.
      */
-    public boolean isUnbreakable() {
-        if (isInvalidItemStack()) return false;
-        return getItemMeta().isUnbreakable();
+    public ItemBuilder removeAttributeModifier(@NotNull Attribute attribute) {
+        this.itemMeta.removeAttributeModifier(attribute);
+        return this;
     }
 
     /**
-     * Validates the {@link ItemStack}.
-     * Throws an exception if the item's material is {@link Material#AIR}.
+     * Remove all {@link Attribute}s and {@link AttributeModifier}s for a given {@link EquipmentSlot}.
+     * If the given {@link EquipmentSlot} is null, this will remove all {@link AttributeModifier}s that do not have an EquipmentSlot set.
      *
-     * @return {@code false} if the {@link ItemStack} is valid.
-     * @throws IllegalArgumentException if the item's material is air.
+     * @param slot The EquipmentSlot to clear all attributes and their modifiers for.
+     * @return The current ItemBuilder instance for method chaining.
      */
-    private boolean isInvalidItemStack() {
-        if (this.itemStack.getType() == Material.AIR) {
-            throw new IllegalArgumentException("The item's material is currently air!");
-        }
-        return false;
+    public ItemBuilder removeAttributeModifier(@NotNull EquipmentSlot slot) {
+        this.itemMeta.removeAttributeModifier(slot);
+        return this;
     }
 
     /**
-     * Retrieves the {@link ItemMeta} from the {@link ItemStack}.
+     * Remove a specific {@link Attribute} and {@link AttributeModifier}. AttributeModifiers are matched according to their {@link UUID}.
      *
-     * @return the {@link ItemMeta} instance.
-     * @throws IllegalStateException if the {@link ItemMeta} is null.
+     * @param attribute The Attribute to remove the modifier from.
+     * @param modifier The specific AttributeModifier to remove.
+     * @return The current ItemBuilder instance for method chaining.
      */
-    private @NotNull ItemMeta getItemMeta() {
-        ItemMeta meta = this.itemStack.getItemMeta();
-        if (meta == null) {
-            throw new IllegalStateException("Failed to retrieve item meta.");
-        }
-        return meta;
-    }
-
-    /**
-     * Checks if the ItemStack has metadata supporting colors.
-     *
-     * @return true if the ItemStack has color metadata, false otherwise.
-     */
-    private boolean hasColorMeta() {
-        ItemMeta meta = getItemMeta();
-        return meta instanceof PotionMeta || meta instanceof LeatherArmorMeta || meta instanceof FireworkEffectMeta;
-    }
-
-    /**
-     * Checks if the ItemStack has potion effect-related metadata.
-     *
-     * @return {@code true} if the ItemMeta is an instance of PotionMeta or SuspiciousStewMeta,
-     *         {@code false} otherwise.
-     */
-    private boolean hasPotionEffectMeta() {
-        ItemMeta meta = getItemMeta();
-        return meta instanceof PotionMeta || meta instanceof SuspiciousStewMeta;
+    public ItemBuilder removeAttributeModifier(@NotNull Attribute attribute, @NotNull AttributeModifier modifier) {
+        this.itemMeta.removeAttributeModifier(attribute, modifier);
+        return this;
     }
 }
