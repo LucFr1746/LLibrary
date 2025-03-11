@@ -13,21 +13,39 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * Handles the loading and registration of various requirement types for use in the system.
+ */
 public class RequirementLoader {
 
     private final ActionLoader actionLoader = new ActionLoader();
     private final Map<String, Function<Object, Requirement>> requirementFactories = new HashMap<>();
 
+    /**
+     * Initializes the RequirementLoader and registers default requirement types.
+     */
     public RequirementLoader() {
         registerRequirementType("PERMISSION", perm -> new HasPermissionRequirement((String) perm));
         registerRequirementType("EXP", amount -> new HasExpRequirement((int) amount));
         registerRequirementType("LEVEL", amount -> new HasLevelRequirement((int) amount));
     }
 
+    /**
+     * Registers a new requirement type.
+     *
+     * @param name    The name of the requirement type.
+     * @param factory A function that takes an object and returns a new instance of the requirement.
+     */
     public void registerRequirementType(String name, Function<Object, Requirement> factory) {
         requirementFactories.put(name.toUpperCase(), factory);
     }
 
+    /**
+     * Retrieves a list of requirements from a configuration section.
+     *
+     * @param checkingSection The configuration section containing requirement data.
+     * @return A list of requirements.
+     */
     public List<Requirement> getRequirements(@Nullable ConfigurationSection checkingSection) {
         if (checkingSection == null) return Collections.emptyList();
 
@@ -37,6 +55,13 @@ public class RequirementLoader {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Loads a requirement from a given configuration section.
+     *
+     * @param section The configuration section defining the requirement.
+     * @param key     The key for the requirement in the configuration.
+     * @return The loaded requirement, or null if an error occurs.
+     */
     private Requirement loadRequirement(ConfigurationSection section, String key) {
         if (section == null) return null;
 
@@ -67,6 +92,13 @@ public class RequirementLoader {
         }
     }
 
+    /**
+     * Loads actions associated with a requirement from the configuration section.
+     *
+     * @param section The configuration section.
+     * @param path    The path to the action data.
+     * @return A list of actions, or an empty list if none are found.
+     */
     private List<Action> loadActions(ConfigurationSection section, String path) {
         Object actionData = section.get(path);
         if (actionData instanceof String) return List.of(actionLoader.getAction((String) actionData));
@@ -74,6 +106,14 @@ public class RequirementLoader {
         return Collections.emptyList();
     }
 
+    /**
+     * Parses an integer amount from a configuration string.
+     *
+     * @param amountString The amount string to parse.
+     * @param key          The configuration key where the amount is located.
+     * @return The parsed integer amount.
+     * @throws IllegalArgumentException If the amount is invalid or cannot be parsed.
+     */
     private int parseAmount(String amountString, String key) {
         try {
             return Integer.parseInt(Optional.ofNullable(amountString).orElse(""));
