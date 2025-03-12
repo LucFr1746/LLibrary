@@ -36,7 +36,7 @@ import java.util.*;
 public class ItemBuilder {
 
     private final @NotNull ItemStack itemStack;
-    private final @NotNull ItemMeta itemMeta;
+    private @NotNull ItemMeta itemMeta;
 
     /**
      * Creates an ItemBuilder from an existing {@link ItemStack}.
@@ -168,6 +168,8 @@ public class ItemBuilder {
             throw new IllegalArgumentException("The itemstack must be a PLAYER_HEAD");
         }
 
+        this.itemStack.setItemMeta(this.itemMeta);
+
         NBT.modifyComponents(this.itemStack, nbt -> {
             ReadWriteNBT profileNbt = nbt.getOrCreateCompound("minecraft:profile");
             profileNbt.setUUID("id", UUID.randomUUID());
@@ -189,6 +191,8 @@ public class ItemBuilder {
                 newTextureCompound.setString("value", texture);
             }
         });
+
+        this.itemMeta = Objects.requireNonNull(this.itemStack.getItemMeta(), "Failed to retrieve item meta.");
         return this;
     }
 
@@ -227,11 +231,15 @@ public class ItemBuilder {
             throw new IllegalArgumentException("The itemstack must be a PLAYER_HEAD");
         }
 
+        this.itemStack.setItemMeta(this.itemMeta);
+
         NBT.modifyComponents(this.itemStack, nbt -> {
             if (nbt.hasTag("minecraft:profile")) {
                 nbt.removeKey("minecraft:profile");
             }
         });
+
+        this.itemMeta = Objects.requireNonNull(this.itemStack.getItemMeta(), "Failed to retrieve item meta.");
         return this;
     }
 
