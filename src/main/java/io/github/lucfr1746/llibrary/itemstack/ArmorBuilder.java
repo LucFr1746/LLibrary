@@ -1,9 +1,9 @@
 package io.github.lucfr1746.llibrary.itemstack;
 
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 /**

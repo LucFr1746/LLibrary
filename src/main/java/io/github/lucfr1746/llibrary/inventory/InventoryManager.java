@@ -3,12 +3,13 @@ package io.github.lucfr1746.llibrary.inventory;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.github.lucfr1746.llibrary.LLibrary;
-import io.github.lucfr1746.llibrary.action.Action;
 import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
 import io.github.lucfr1746.llibrary.util.helper.FileAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 
 import java.util.*;

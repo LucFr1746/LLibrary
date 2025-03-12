@@ -2,9 +2,6 @@ package io.github.lucfr1746.llibrary.itemstack;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import de.tr7zw.nbtapi.NBT;
-import de.tr7zw.nbtapi.iface.ReadWriteNBT;
-import de.tr7zw.nbtapi.iface.ReadWriteNBTCompoundList;
 import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.itemstack.component.*;
 import io.github.lucfr1746.llibrary.util.NamespaceKey;
