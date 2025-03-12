@@ -1,1 +1,1 @@
-LLibrary by LucFr1746 Copy-right
+LLibrary by LucFr1746 © 2024. All rights reserved.
