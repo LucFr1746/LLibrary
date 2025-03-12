@@ -1220,4 +1220,8 @@ public class ItemBuilder {
         this.itemMeta.removeAttributeModifier(attribute, modifier);
         return this;
     }
+
+    public @NotNull ItemMeta getItemMeta() {
+        return this.itemMeta;
+    }
 }
