@@ -2,6 +2,7 @@ package io.github.lucfr1746.llibrary.inventory;
 
 import dev.jorel.commandapi.CommandAPI;
 import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
 import io.github.lucfr1746.llibrary.util.helper.FileAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -39,8 +40,8 @@ public class InventoryManager {
      * Loads necessary configurations for the inventory system.
      */
     public void load() {
-//        LLibrary.getPluginLogger().info("Loading ItemBuilder GUI...");
-//        new ItemBuilderGUI(new FileAPI(LLibrary.getInstance()).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
+        LLibrary.getPluginLogger().info("Loading ItemBuilder GUI...");
+        new ItemBuilderGUI(new FileAPI(LLibrary.getInstance()).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
     }
 
     /**

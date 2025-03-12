@@ -66,6 +66,20 @@ public class FileAPI {
         return this;
     }
 
+    public FileAPI createFile(String filename, String... folders) {
+        Path filePath = this.pluginPath.resolve(Paths.get("", folders).resolve(filename));
+        try {
+            Files.createDirectories(filePath.getParent());
+            if (Files.notExists(filePath)) {
+                Files.createFile(filePath);
+                LLibrary.getPluginLogger().info("Created file: " + filePath);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to create file: " + filePath + " - " + e.getMessage(), e);
+        }
+        return this;
+    }
+
     public FileConfiguration getYAMLConfiguration(String filename, String... folders) {
         Path filePath = this.pluginPath.resolve(Paths.get("", folders).resolve(ensureYamlExtension(filename)));
 
@@ -81,6 +95,15 @@ public class FileAPI {
 
         if (Files.notExists(filePath)) {
             createDefaultFile(filename, folders);
+        }
+        return getYAMLConfiguration(filename, folders);
+    }
+
+    public FileConfiguration getOrCreateYAMLConfiguration(String filename, String... folders) {
+        Path filePath = this.pluginPath.resolve(Paths.get("", folders).resolve(ensureYamlExtension(filename)));
+
+        if (Files.notExists(filePath)) {
+            createFile(filename, folders);
         }
         return getYAMLConfiguration(filename, folders);
     }
