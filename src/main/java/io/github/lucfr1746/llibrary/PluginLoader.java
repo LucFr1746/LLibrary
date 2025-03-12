@@ -51,6 +51,10 @@ class PluginLoader {
         this.inventoryManager.disable();
     }
 
+    public InventoryManager getInventoryManager() {
+        return this.inventoryManager;
+    }
+
     public Logger getLogger() {
         return this.logger;
     }

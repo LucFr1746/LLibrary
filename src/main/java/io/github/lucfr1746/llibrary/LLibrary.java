@@ -1,5 +1,6 @@
 package io.github.lucfr1746.llibrary;
 
+import io.github.lucfr1746.llibrary.inventory.InventoryManager;
 import io.github.lucfr1746.llibrary.util.helper.Logger;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.milkbowl.vault.economy.Economy;
@@ -54,6 +55,20 @@ public final class LLibrary extends JavaPlugin {
      */
     public static LLibrary getInstance() {
         return plugin;
+    }
+
+    /**
+     * Gets the instance of the InventoryManager.
+     * <p>
+     * This method retrieves the InventoryManager from the plugin loader,
+     * allowing access to inventory-related operations such as opening,
+     * closing, and managing custom GUIs.
+     * </p>
+     *
+     * @return the InventoryManager instance currently managed by the plugin loader
+     */
+    public static InventoryManager getInventoryManager() {
+        return pluginLoader.getInventoryManager();
     }
 
     /**
