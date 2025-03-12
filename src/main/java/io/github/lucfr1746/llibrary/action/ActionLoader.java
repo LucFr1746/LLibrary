@@ -23,6 +23,7 @@ public class ActionLoader {
         registerAction("[chat]", ChatAction::new);
         registerAction("[message]", MessageAction::new);
         registerAction("[mini-message]", MiniMessageAction::new);
+        registerAction("[open-menu]", OpenMenuAction::new);
         registerAction("[broadcast]", BroadcastAction::new);
         registerAction("[broadcast-world]", BroadcastWorldAction::new);
         registerAction("[take-money]", input -> new TakeMoneyAction(Double.parseDouble(input)));
