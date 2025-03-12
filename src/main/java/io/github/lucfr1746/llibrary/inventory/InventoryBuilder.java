@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class InventoryBuilder implements InventoryHandler {
+public class InventoryBuilder implements InventoryHandler, Cloneable {
 
     public enum LockMode {
         ALL,
@@ -36,7 +36,9 @@ public class InventoryBuilder implements InventoryHandler {
         NONE
     }
 
-    private String id = UUID.randomUUID().toString();
+    private String id = "InventoryBuilder";
+
+    private String uuid = UUID.randomUUID().toString();
 
     private String title = "";
 
@@ -46,13 +48,13 @@ public class InventoryBuilder implements InventoryHandler {
 
     private InventoryView inventoryView;
 
-    private final Map<Integer, TreeSet<InventoryButton>> buttonMap = new HashMap<>();
+    private Map<Integer, TreeSet<InventoryButton>> buttonMap = new HashMap<>();
 
-    private final List<Requirement> openRequirements = new ArrayList<>();
+    private List<Requirement> openRequirements = new ArrayList<>();
 
-    private final List<Action> openActions = new ArrayList<>();
+    private List<Action> openActions = new ArrayList<>();
 
-    private final List<String> openCommands = new ArrayList<>();
+    private List<String> openCommands = new ArrayList<>();
 
     public void setId(String id) {
         this.id = id;
@@ -86,31 +88,16 @@ public class InventoryBuilder implements InventoryHandler {
     }
 
     public void setOpenCommands(List<String> openCommands) {
-        if (!getOpenCommands().isEmpty()) {
-            Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> {
-                for (String cmd : getOpenCommands()) {
-                    CommandAPI.unregister(cmd);
-                }
-            });
-        }
         this.openCommands.clear();
         this.openCommands.addAll(openCommands);
-        if (this.openCommands.isEmpty()) return;
-        Bukkit.getScheduler().runTask(LLibrary.getInstance(),
-                () -> new CommandAPICommand(openCommands.getFirst())
-                        .withAliases(openCommands.stream().skip(1).toArray(String[]::new))
-                        .executesPlayer((player, args) -> {
-                            if (openRequirements.stream().allMatch(req -> req.evaluate(player))) {
-                                new InventoryManager().openGUI(this, player);
-                            } else {
-                                openRequirements.stream().filter(req -> !req.evaluate(player))
-                                        .forEach(req -> req.getDenyHandler().forEach(handler -> handler.execute(player)));
-                            }
-                        }).register());
     }
 
     public String getId() {
         return this.id;
+    }
+
+    public String getUUID() {
+        return this.uuid;
     }
 
     public String getTitle() {
@@ -222,7 +209,6 @@ public class InventoryBuilder implements InventoryHandler {
                 });
     }
 
-
     @Override
     public void onOpen(InventoryOpenEvent event) {
         for (Action action : getOpenActions()) {
@@ -232,6 +218,32 @@ public class InventoryBuilder implements InventoryHandler {
 
     @Override
     public void onClose(InventoryCloseEvent event) {
+    }
+
+    @Override
+    public InventoryBuilder clone() {
+        try {
+            InventoryBuilder clone = (InventoryBuilder) super.clone();
+            clone.uuid = UUID.randomUUID().toString();
+
+            clone.openRequirements = new ArrayList<>(this.openRequirements);
+            clone.openActions = new ArrayList<>(this.openActions);
+            clone.openCommands = new ArrayList<>(this.openCommands);
+
+            clone.buttonMap = new HashMap<>();
+            for (Map.Entry<Integer, TreeSet<InventoryButton>> entry : this.buttonMap.entrySet()) {
+                TreeSet<InventoryButton> clonedButtons = new TreeSet<>(Comparator.comparing(InventoryButton::getPriority).reversed());
+                for (InventoryButton button : entry.getValue()) {
+                    clonedButtons.add(button.clone());
+                }
+                clone.buttonMap.put(entry.getKey(), clonedButtons);
+            }
+
+            clone.inventoryView = null;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Cloning not supported", e);
+        }
     }
 
     public void loadFromFile(@Nullable FileConfiguration fileConfiguration) {

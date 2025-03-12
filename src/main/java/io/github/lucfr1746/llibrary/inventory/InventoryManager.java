@@ -1,14 +1,14 @@
 package io.github.lucfr1746.llibrary.inventory;
 
 import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPICommand;
 import io.github.lucfr1746.llibrary.LLibrary;
+import io.github.lucfr1746.llibrary.action.Action;
 import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
 import io.github.lucfr1746.llibrary.util.helper.FileAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
 
 import java.util.*;
@@ -19,54 +19,108 @@ import java.util.*;
  */
 public class InventoryManager {
 
+    private final Map<String, InventoryBuilder> baseMenus = new HashMap<>();
     private final Map<Inventory, InventoryHandler> activeInventories = new HashMap<>();
-    private final Map<Inventory, InventoryBuilder> registeredInventories = new HashMap<>();
 
     /**
-     * Opens a custom GUI for a player.
-     * @param inventoryBuilder The InventoryBuilder that constructs the GUI.
+     * Opens a custom GUI for a player by menu ID.
+     * @param menuID The ID of the menu to open.
      * @param player The player who will see the GUI.
      */
-    public void openGUI(InventoryBuilder inventoryBuilder, Player player) {
-        InventoryListener guiListener = new InventoryListener(this);
-        Bukkit.getPluginManager().registerEvents(guiListener, LLibrary.getInstance());
+    public void openGUI(String menuID, Player player) {
+        InventoryBuilder baseMenu = baseMenus.get(menuID);
+        if (baseMenu == null) {
+            LLibrary.getPluginLogger().warning("No menu found with ID: " + menuID);
+            return;
+        }
 
-        inventoryBuilder.decorate(player);
-        this.registerActiveInventory(inventoryBuilder.getInventoryView().getTopInventory(), inventoryBuilder);
-        Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> player.openInventory(inventoryBuilder.getInventoryView()));
+        // Clone the base menu for the player
+        InventoryBuilder menuClone = baseMenu.clone();
+        menuClone.decorate(player);
+
+        // Register the clone to track interactions
+        registerActiveInventory(menuClone.getInventoryView().getTopInventory(), menuClone);
+
+        // Open the inventory for the player
+        Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> player.openInventory(menuClone.getInventoryView()));
     }
 
     /**
      * Loads necessary configurations for the inventory system.
+     * Only loads base menus, registration happens when a player opens a menu.
      */
     public void load() {
-        LLibrary.getPluginLogger().info("Loading ItemBuilder GUI...");
-        new ItemBuilderGUI(new FileAPI(LLibrary.getInstance(), true).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
+        LLibrary.getPluginLogger().info("Loading base menus...");
+
+        FileAPI fileAPI = new FileAPI(LLibrary.getInstance(), true);
+        InventoryBuilder itemBuilderGUI = new ItemBuilderGUI(fileAPI.getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
+
+        baseMenus.put(itemBuilderGUI.getId(), itemBuilderGUI);
+        registerOpenCommands(itemBuilderGUI);
+
+        Bukkit.getPluginManager().registerEvents(new InventoryListener(this), LLibrary.getInstance());
     }
 
     /**
-     * Disables the inventory manager and unregisters open commands.
+     * Registers open commands for a given InventoryBuilder.
+     * @param inventoryBuilder The InventoryBuilder containing open commands.
+     */
+    private void registerOpenCommands(InventoryBuilder inventoryBuilder) {
+        List<String> openCommands = inventoryBuilder.getOpenCommands();
+
+        if (openCommands == null || openCommands.isEmpty()) return;
+
+        Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> new CommandAPICommand(openCommands.getFirst())
+                .withAliases(openCommands.stream().skip(1).toArray(String[]::new))
+                .executesPlayer((player, args) -> {
+                    if (inventoryBuilder.getOpenRequirements().stream().allMatch(req -> req.evaluate(player))) {
+                        openGUI(inventoryBuilder.getId(), player);
+                    } else {
+                        inventoryBuilder.getOpenRequirements().stream()
+                                .filter(req -> !req.evaluate(player))
+                                .forEach(req -> req.getDenyHandler().forEach(handler -> handler.execute(player)));
+                    }
+                }).register());
+    }
+
+    /**
+     * Unregisters open commands for a given InventoryBuilder.
+     * @param inventoryBuilder The InventoryBuilder containing commands to unregister.
+     */
+    private void unregisterOpenCommands(InventoryBuilder inventoryBuilder) {
+        List<String> openCommands = inventoryBuilder.getOpenCommands();
+
+        if (openCommands == null || openCommands.isEmpty()) return;
+
+        for (String cmd : openCommands) {
+            CommandAPI.unregister(cmd);
+        }
+    }
+
+    /**
+     * Disables the inventory manager and closes all active inventories.
      */
     public void disable() {
-        registeredInventories.forEach((inv, invBuilder) -> {
-            if (!invBuilder.getOpenCommands().isEmpty()) {
-                Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> {
-                    for (String cmd : invBuilder.getOpenCommands()) {
-                        CommandAPI.unregister(cmd);
-                    }
-                });
-            }
-        });
+        Set<Player> playersToClose = new HashSet<>();
+
+        activeInventories.forEach((inv, handler)
+                -> inv.getViewers().stream()
+                .filter(entity -> entity instanceof Player)
+                .forEach(entity -> playersToClose.add((Player) entity)));
+
+        playersToClose.forEach(Player::closeInventory);
+        activeInventories.clear();
+
+        baseMenus.forEach((id, menu) -> unregisterOpenCommands(menu));
     }
 
     /**
      * Registers an active inventory to track interactions.
      * @param inventory The inventory instance.
-     * @param inventoryBuilderAPI The builder that created the inventory.
+     * @param handler The handler to manage events for this inventory.
      */
-    private void registerActiveInventory(Inventory inventory, InventoryBuilder inventoryBuilderAPI) {
-        activeInventories.put(inventory, inventoryBuilderAPI);
-        registeredInventories.put(inventory, inventoryBuilderAPI);
+    private void registerActiveInventory(Inventory inventory, InventoryHandler handler) {
+        activeInventories.put(inventory, handler);
     }
 
     /**
@@ -75,7 +129,6 @@ public class InventoryManager {
      */
     private void unregisterInventory(Inventory inventory) {
         activeInventories.remove(inventory);
-        registeredInventories.remove(inventory);
     }
 
     /**

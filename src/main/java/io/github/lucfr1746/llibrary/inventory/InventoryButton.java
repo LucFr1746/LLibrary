@@ -13,7 +13,7 @@ import java.util.function.Function;
  * Represents a button in a custom inventory system.
  * This button can have a dynamic icon, handle click events, and have visibility requirements.
  */
-public class InventoryButton {
+public class InventoryButton implements Cloneable {
 
     private Function<Player, ItemStack> iconCreator;
     private Consumer<InventoryClickEvent> eventConsumer;
@@ -101,6 +101,21 @@ public class InventoryButton {
      */
     public int getPriority() {
         return this.priority;
+    }
+
+    @Override
+    public InventoryButton clone() {
+        try {
+            InventoryButton clone = (InventoryButton) super.clone();
+            clone.id = this.id;
+            clone.priority = this.priority;
+            clone.iconCreator = this.iconCreator;
+            clone.eventConsumer = this.eventConsumer;
+            clone.viewRequirements = this.viewRequirements != null ? List.copyOf(this.viewRequirements) : List.of();
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Cloning not supported", e);
+        }
     }
 
     /**
