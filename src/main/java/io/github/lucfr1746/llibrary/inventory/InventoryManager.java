@@ -41,7 +41,7 @@ public class InventoryManager {
      */
     public void load() {
         LLibrary.getPluginLogger().info("Loading ItemBuilder GUI...");
-        new ItemBuilderGUI(new FileAPI(LLibrary.getInstance()).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
+        new ItemBuilderGUI(new FileAPI(LLibrary.getInstance(), true).getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
     }
 
     /**

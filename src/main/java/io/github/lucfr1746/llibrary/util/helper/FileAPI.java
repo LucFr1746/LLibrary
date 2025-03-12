@@ -22,17 +22,21 @@ public class FileAPI {
     private final Plugin plugin;
     private final Path pluginPath;
 
-    public FileAPI(String pluginName) {
+    private final boolean isLogger;
+
+    public FileAPI(String pluginName, boolean enableLogger) {
         this.plugin = Bukkit.getPluginManager().getPlugin(pluginName);
         if (this.plugin == null) {
             throw new IllegalArgumentException("No plugin found with name: " + pluginName);
         }
         this.pluginPath = plugin.getDataFolder().toPath();
+        this.isLogger = enableLogger;
     }
 
-    public FileAPI(Plugin plugin) {
+    public FileAPI(Plugin plugin, boolean enableLogger) {
         this.plugin = plugin;
         this.pluginPath = plugin.getDataFolder().toPath();
+        this.isLogger = enableLogger;
     }
 
     public FileAPI createFolder(String... folders) {
@@ -40,7 +44,7 @@ public class FileAPI {
         try {
             if (Files.notExists(folderPath)) {
                 Files.createDirectories(folderPath);
-                LLibrary.getPluginLogger().info("Created folder: " + folderPath);
+                if (isLogger) LLibrary.getPluginLogger().info("Created folder: " + folderPath);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to create folder at: " + folderPath + " - " + e.getMessage(), e);
@@ -54,12 +58,12 @@ public class FileAPI {
 
         try (InputStream inputStream = this.plugin.getResource(resourcePath)) {
             if (inputStream == null) {
-                throw new RuntimeException("Resource not found: " + resourcePath);
+                throw new IllegalArgumentException("Resource not found: " + resourcePath);
             }
 
             Files.createDirectories(filePath.getParent());
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            LLibrary.getPluginLogger().info("Created default file: " + filePath);
+            if (isLogger) LLibrary.getPluginLogger().info("Created default file: " + filePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to create default file: " + filePath + " - " + e.getMessage(), e);
         }
@@ -72,7 +76,7 @@ public class FileAPI {
             Files.createDirectories(filePath.getParent());
             if (Files.notExists(filePath)) {
                 Files.createFile(filePath);
-                LLibrary.getPluginLogger().info("Created file: " + filePath);
+                if (isLogger) LLibrary.getPluginLogger().info("Created file: " + filePath);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to create file: " + filePath + " - " + e.getMessage(), e);
@@ -84,7 +88,7 @@ public class FileAPI {
         Path filePath = this.pluginPath.resolve(Paths.get("", folders).resolve(ensureYamlExtension(filename)));
 
         if (Files.notExists(filePath)) {
-            throw new RuntimeException("Configuration file not found: " + filePath);
+            throw new IllegalArgumentException("Configuration file not found: " + filePath);
         }
 
         return YamlConfiguration.loadConfiguration(filePath.toFile());
@@ -111,7 +115,7 @@ public class FileAPI {
     public List<File> getAllFiles(String... folders) {
         Path folderPath = this.pluginPath.resolve(Paths.get("", folders));
         if (!Files.exists(folderPath) || !Files.isDirectory(folderPath)) {
-            throw new RuntimeException("Folder not found: " + folderPath);
+            throw new IllegalArgumentException("Folder not found: " + folderPath);
         }
 
         try (Stream<Path> paths = Files.list(folderPath)) {
