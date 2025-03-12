@@ -6,6 +6,7 @@ import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
 import io.github.lucfr1746.llibrary.util.helper.FileAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -48,18 +49,48 @@ public class InventoryManager {
 
     /**
      * Loads necessary configurations for the inventory system.
-     * Only loads base menus, registration happens when a player opens a menu.
+     * This method initializes the base menus by loading configurations
+     * from stored menu files.
+     * Menu registration happens dynamically when a player opens a menu.
      */
     public void load() {
         LLibrary.getPluginLogger().info("Loading base menus...");
+        new ItemBuilderGUI();
 
         FileAPI fileAPI = new FileAPI(LLibrary.getInstance(), true);
-        InventoryBuilder itemBuilderGUI = new ItemBuilderGUI(fileAPI.getOrCreateDefaultYAMLConfiguration("item-builder-gui.yml", "itembuilder"));
-
-        baseMenus.put(itemBuilderGUI.getId(), itemBuilderGUI);
-        registerOpenCommands(itemBuilderGUI);
+        fileAPI.createFolderIfNotExist("menu");
+        fileAPI.getAllFiles("menu").forEach(file -> registerInventoryBuilder(fileAPI.convertToYAMLConfiguration(file)));
 
         Bukkit.getPluginManager().registerEvents(new InventoryListener(this), LLibrary.getInstance());
+    }
+
+    /**
+     * Registers a new InventoryBuilder instance.
+     * This method adds the given inventory builder to the base menu map
+     * and registers associated open commands.
+     *
+     * @param inventoryBuilder The InventoryBuilder instance to register.
+     * @throws IllegalStateException if an inventory with the same ID already exists.
+     */
+    public void registerInventoryBuilder(InventoryBuilder inventoryBuilder) {
+        if (baseMenus.containsKey(inventoryBuilder.getId()))
+            throw new IllegalStateException("Duplicate inventory builder id detected: " + inventoryBuilder.getId());
+        baseMenus.put(inventoryBuilder.getId(), inventoryBuilder);
+        registerOpenCommands(inventoryBuilder);
+    }
+
+
+    /**
+     * Registers a new InventoryBuilder from a YAML file configuration.
+     * This method creates an InventoryBuilder from the provided configuration,
+     * loads its data, and registers it.
+     *
+     * @param fileConfiguration The FileConfiguration containing the menu data.
+     */
+    public void registerInventoryBuilder(FileConfiguration fileConfiguration) {
+        InventoryBuilder inventoryBuilder = new InventoryBuilder();
+        inventoryBuilder.loadFromFile(fileConfiguration);
+        registerInventoryBuilder(inventoryBuilder);
     }
 
     /**

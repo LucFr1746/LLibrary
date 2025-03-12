@@ -39,7 +39,7 @@ public class FileAPI {
         this.isLogger = enableLogger;
     }
 
-    public FileAPI createFolder(String... folders) {
+    public FileAPI createFolderIfNotExist(String... folders) {
         Path folderPath = this.pluginPath.resolve(Paths.get("", folders));
         try {
             if (Files.notExists(folderPath)) {
