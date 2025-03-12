@@ -2,6 +2,9 @@ package io.github.lucfr1746.llibrary.itemstack;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import de.tr7zw.nbtapi.NBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBT;
+import de.tr7zw.nbtapi.iface.ReadWriteNBTCompoundList;
 import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.itemstack.component.*;
 import io.github.lucfr1746.llibrary.util.NamespaceKey;
@@ -151,6 +154,85 @@ public class ItemBuilder {
      */
     public @NotNull String getTranslationKey() {
         return this.itemStack.getTranslationKey();
+    }
+
+    /**
+     * Sets the custom texture of a player head item.
+     *
+     * @param texture The Base64-encoded texture string.
+     * @return The current ItemBuilder instance for chaining.
+     * @throws IllegalArgumentException if the item is not a PLAYER_HEAD.
+     */
+    public ItemBuilder setSkullTexture(String texture) {
+        if (getType() != Material.PLAYER_HEAD) {
+            throw new IllegalArgumentException("The itemstack must be a PLAYER_HEAD");
+        }
+
+        NBT.modifyComponents(this.itemStack, nbt -> {
+            ReadWriteNBT profileNbt = nbt.getOrCreateCompound("minecraft:profile");
+            profileNbt.setUUID("id", UUID.randomUUID());
+            ReadWriteNBTCompoundList propertiesList = profileNbt.getCompoundList("properties");
+
+            ReadWriteNBT textureCompound = null;
+            for (ReadWriteNBT compound : propertiesList) {
+                if ("textures".equals(compound.getString("name"))) {
+                    textureCompound = compound;
+                    break;
+                }
+            }
+
+            if (textureCompound != null) {
+                textureCompound.setString("value", texture);
+            } else {
+                ReadWriteNBT newTextureCompound = propertiesList.addCompound();
+                newTextureCompound.setString("name", "textures");
+                newTextureCompound.setString("value", texture);
+            }
+        });
+        return this;
+    }
+
+    /**
+     * Retrieves the custom texture of a player head item.
+     *
+     * @return The Base64-encoded texture string, or "NONE" if not found.
+     * @throws IllegalArgumentException if the item is not a PLAYER_HEAD.
+     */
+    public String getSkullTexture() {
+        if (getType() != Material.PLAYER_HEAD) {
+            throw new IllegalArgumentException("The itemstack must be a PLAYER_HEAD");
+        }
+
+        return NBT.modifyComponents(this.itemStack, nbt -> {
+            ReadWriteNBT profileNbt = nbt.getCompound("minecraft:profile");
+            if (profileNbt == null) return null;
+
+            ReadWriteNBTCompoundList propertiesList = profileNbt.getCompoundList("properties");
+            if (propertiesList == null || propertiesList.isEmpty()) return null;
+
+            ReadWriteNBT propertiesNbt = propertiesList.get(0);
+
+            return propertiesNbt.getOrDefault("value", null);
+        });
+    }
+
+    /**
+     * Removes the custom texture from a player head item.
+     *
+     * @return The current ItemBuilder instance for chaining.
+     * @throws IllegalArgumentException if the item is not a PLAYER_HEAD.
+     */
+    public ItemBuilder removeSkullTexture() {
+        if (getType() != Material.PLAYER_HEAD) {
+            throw new IllegalArgumentException("The itemstack must be a PLAYER_HEAD");
+        }
+
+        NBT.modifyComponents(this.itemStack, nbt -> {
+            if (nbt.hasTag("minecraft:profile")) {
+                nbt.removeKey("minecraft:profile");
+            }
+        });
+        return this;
     }
 
     /**
