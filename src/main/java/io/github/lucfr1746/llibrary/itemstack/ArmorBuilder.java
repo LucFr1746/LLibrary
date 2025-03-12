@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * additional functionality for modifying {@link ArmorMeta} of an {@link ItemStack}.
  * This class allows setting and retrieving armor trims for supported armor items.
  */
-public class ArmorMetaBuilder extends ItemBuilder {
+public class ArmorBuilder extends ItemBuilder {
 
     private final ArmorMeta armorMeta;
 
@@ -21,7 +21,7 @@ public class ArmorMetaBuilder extends ItemBuilder {
      * @param itemStack the item stack to modify
      * @throws IllegalArgumentException if the item's meta is not an instance of {@link ArmorMeta}
      */
-    public ArmorMetaBuilder(@NotNull ItemStack itemStack) {
+    public ArmorBuilder(@NotNull ItemStack itemStack) {
         super(itemStack);
         if (!(getItemMeta() instanceof ArmorMeta meta)) {
             throw new IllegalArgumentException("ItemMeta is not an instance of ArmorMeta");
@@ -36,7 +36,7 @@ public class ArmorMetaBuilder extends ItemBuilder {
      * @param amount the quantity of items in the stack
      * @throws IllegalArgumentException if the item's meta is not an instance of {@link ArmorMeta}
      */
-    public ArmorMetaBuilder(@NotNull Material material, int amount) {
+    public ArmorBuilder(@NotNull Material material, int amount) {
         super(material, amount);
         if (!(getItemMeta() instanceof ArmorMeta meta)) {
             throw new IllegalArgumentException("ItemMeta is not an instance of ArmorMeta");
@@ -50,7 +50,7 @@ public class ArmorMetaBuilder extends ItemBuilder {
      * @param material the material for the item stack
      * @throws IllegalArgumentException if the item's meta is not an instance of {@link ArmorMeta}
      */
-    public ArmorMetaBuilder(@NotNull Material material) {
+    public ArmorBuilder(@NotNull Material material) {
         super(material);
         if (!(getItemMeta() instanceof ArmorMeta meta)) {
             throw new IllegalArgumentException("ItemMeta is not an instance of ArmorMeta");
@@ -82,7 +82,7 @@ public class ArmorMetaBuilder extends ItemBuilder {
      * @param trim the armor trim to apply
      * @return this {@code ArmorMetaBuilder} instance for method chaining
      */
-    public ArmorMetaBuilder setTrim(ArmorTrim trim) {
+    public ArmorBuilder setTrim(ArmorTrim trim) {
         armorMeta.setTrim(trim);
         return this;
     }
