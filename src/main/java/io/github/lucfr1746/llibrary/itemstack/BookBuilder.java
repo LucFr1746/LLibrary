@@ -35,7 +35,7 @@ public class BookBuilder extends WritableBookBuilder {
      * @throws IllegalArgumentException if the item's meta is not an instance of {@link BookMeta}
      */
     public BookBuilder(@NotNull Material material) {
-        super(material);
+        super(new ItemStack(material));
         if (!(getItemMeta() instanceof BookMeta meta)) {
             throw new IllegalArgumentException("ItemMeta is not an instance of BookMeta");
         }
