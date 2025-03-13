@@ -1,5 +1,7 @@
 [Home](https://github.com/LucFr1746/LLibrary/wiki)
 
+[Import LLibrary](https://github.com/LucFr1746/LLibrary/wiki/Import-LLibrary)
+
 ## How to use
 
 ### Inventory Builder

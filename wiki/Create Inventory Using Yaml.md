@@ -69,3 +69,6 @@ public class CustomInventory extends InventoryBuilder {
 }
 ```
 Now, you can add buttons, or whatever you want. Like [Create Inventory using code](https://github.com/LucFr1746/LLibrary/wiki/Create-Inventory-Using-Code).
+
+---
+**Author:** [lucfr1746](https://github.com/lucfr1746)
