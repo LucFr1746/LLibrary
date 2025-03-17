@@ -7,6 +7,7 @@ import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
 import io.github.lucfr1746.llibrary.util.helper.FileAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -23,6 +24,8 @@ public class InventoryManager {
 
     private final Map<String, InventoryBuilder> baseMenus = new HashMap<>();
     private final Map<Inventory, InventoryHandler> activeInventories = new HashMap<>();
+
+    private final List<InventoryBuilder> pluginGUIs = new ArrayList<>();
 
     /**
      * Opens a custom GUI for a player by menu ID.
@@ -55,7 +58,7 @@ public class InventoryManager {
      */
     public void load() {
         LLibrary.getPluginLogger().info("Loading base menus...");
-        new ItemBuilderGUI();
+        this.pluginGUIs.add(new ItemBuilderGUI());
 
         FileAPI fileAPI = new FileAPI(LLibrary.getInstance(), true);
         fileAPI.createFolderIfNotExist("menu");
@@ -91,6 +94,31 @@ public class InventoryManager {
         InventoryBuilder inventoryBuilder = new InventoryBuilder();
         inventoryBuilder.loadFromFile(fileConfiguration);
         registerInventoryBuilder(inventoryBuilder);
+    }
+
+    /**
+     * Unregisters an InventoryBuilder, removing its commands and closing active inventories.
+     * @param inventoryBuilder The InventoryBuilder to unregister.
+     */
+    public void unregisterInventoryBuilder(InventoryBuilder inventoryBuilder) {
+        unregisterOpenCommands(inventoryBuilder);
+
+        Set<Inventory> inventoriesToRemove = new HashSet<>();
+        activeInventories.forEach((inventory, handler) -> {
+            if (handler.equals(inventoryBuilder)) {
+                inventoriesToRemove.add(inventory);
+            }
+        });
+
+        inventoriesToRemove.forEach(inventory -> {
+            inventory.getViewers().stream()
+                    .filter(entity -> entity instanceof Player)
+                    .forEach(HumanEntity::closeInventory);
+
+            unregisterInventory(inventory);
+        });
+
+        baseMenus.remove(inventoryBuilder.getId());
     }
 
     /**
@@ -133,17 +161,7 @@ public class InventoryManager {
      * Disables the inventory manager and closes all active inventories.
      */
     public void disable() {
-        Set<Player> playersToClose = new HashSet<>();
-
-        activeInventories.forEach((inv, handler)
-                -> inv.getViewers().stream()
-                .filter(entity -> entity instanceof Player)
-                .forEach(entity -> playersToClose.add((Player) entity)));
-
-        playersToClose.forEach(Player::closeInventory);
-        activeInventories.clear();
-
-        baseMenus.forEach((id, menu) -> unregisterOpenCommands(menu));
+        this.pluginGUIs.forEach(this::unregisterInventoryBuilder);
     }
 
     /**

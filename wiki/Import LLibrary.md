@@ -31,7 +31,7 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation 'com.github.LucFr1746:LLibrary:Tag'
+    implementation 'com.github.LucFr1746:LLibrary:VERSION'
 }
 ```
 
