@@ -1,5 +1,5 @@
 name: LLibrary
-version: '1.0.0'
+version: '${project.version}'
 main: io.github.lucfr1746.llibrary.LLibrary
 api-version: '1.21.1'
 prefix: "LLibrary"
