@@ -44,7 +44,7 @@ public class FileAPI {
         try {
             if (Files.notExists(folderPath)) {
                 Files.createDirectories(folderPath);
-                if (isLogger) LLibrary.getPluginLogger().info("Created folder: " + folderPath);
+                if (isLogger) this.plugin.getLogger().info("Created folder: " + folderPath);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to create folder at: " + folderPath + " - " + e.getMessage(), e);
@@ -63,7 +63,7 @@ public class FileAPI {
 
             Files.createDirectories(filePath.getParent());
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-            if (isLogger) LLibrary.getPluginLogger().info("Created default file: " + filePath);
+            if (isLogger) this.plugin.getLogger().info("Created default file: " + filePath);
         } catch (IOException e) {
             throw new RuntimeException("Failed to create default file: " + filePath + " - " + e.getMessage(), e);
         }
@@ -76,7 +76,7 @@ public class FileAPI {
             Files.createDirectories(filePath.getParent());
             if (Files.notExists(filePath)) {
                 Files.createFile(filePath);
-                if (isLogger) LLibrary.getPluginLogger().info("Created file: " + filePath);
+                if (isLogger) this.plugin.getLogger().info("Created file: " + filePath);
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to create file: " + filePath + " - " + e.getMessage(), e);
