@@ -424,15 +424,15 @@ public class ItemBuilder {
      * @return the current ItemBuilder instance for method chaining
      */
     public ItemBuilder addItemFlags(@NotNull ItemFlag... itemFlags) {
-        Arrays.stream(itemFlags).toList().forEach(flag -> {
-            if (flag == ItemFlag.HIDE_ATTRIBUTES && LLibrary.hasPaperAPI()) {
-                if (this.itemMeta.getAttributeModifiers() == null) {
-                    for (EquipmentSlot slot : EquipmentSlot.values()) {
-                        getType().getDefaultAttributeModifiers(slot).forEach(this.itemMeta::addAttributeModifier);
-                    }
+        if (LLibrary.hasPaperAPI() && Arrays.asList(itemFlags).contains(ItemFlag.HIDE_ATTRIBUTES)) {
+            if (this.itemMeta.getAttributeModifiers() == null) {
+                Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create();
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    getType().getDefaultAttributeModifiers(slot).forEach(modifiers::put);
                 }
+                this.itemMeta.setAttributeModifiers(modifiers);
             }
-        });
+        }
 
         this.itemMeta.addItemFlags(itemFlags);
         return this;
