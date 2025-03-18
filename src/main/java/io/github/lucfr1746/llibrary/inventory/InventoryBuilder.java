@@ -15,10 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.MenuType;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -305,16 +302,16 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
             try {
                 material = Material.valueOf(item.getString("material"));
             } catch (IllegalArgumentException e) {
-                LLibrary.getPluginLogger().error("There is no material named: " + item.getString("material") + ". Skipping this item...");
+                LLibrary.getPluginLogger().warning("There is no material named: " + item.getString("material") + ". Skipping this item...");
                 continue;
             } catch (NullPointerException e) {
-                LLibrary.getPluginLogger().error("Missing material for item: " + key + ". Skipping this item...");
+                LLibrary.getPluginLogger().warning("Missing material for item: " + key + ". Skipping this item...");
                 continue;
             }
 
             List<Integer> slots;
             if (item.getIntegerList("slot").isEmpty() && item.getInt("slot", -1) == -1) {
-                LLibrary.getPluginLogger().error("Missing slot for item: " + key + ". Skipping this item...");
+                LLibrary.getPluginLogger().warning("Missing slot for item: " + key + ". Skipping this item...");
                 continue;
             } else {
                 if (item.getIntegerList("slot").isEmpty()) {
@@ -329,6 +326,17 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
                 requirements = new ArrayList<>();
             } else {
                 requirements = new RequirementLoader().getRequirements(item.getConfigurationSection("requirements"));
+            }
+
+            List<ItemFlag> flags = new ArrayList<>();
+            if (item.contains("item-flags")) {
+                item.getStringList("item-flags").forEach(flag -> {
+                    try {
+                        flags.add(ItemFlag.valueOf(flag.toUpperCase()));
+                    } catch (IllegalArgumentException e) {
+                        LLibrary.getPluginLogger().warning("Invalid item flag -> " + flag + ". Skipping this flag...");
+                    }
+                });
             }
 
             String displayName = item.getString("display-name", "");
@@ -349,6 +357,7 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
                             itemBuilder.setDisplayName(displayName);
                             if (!lores.isEmpty()) itemBuilder.setLores(lores);
                         }
+                        for (ItemFlag flag : flags) itemBuilder.addItemFlags(flag);
                         return itemBuilder.build();
                     })
                     .consumer(event -> {
