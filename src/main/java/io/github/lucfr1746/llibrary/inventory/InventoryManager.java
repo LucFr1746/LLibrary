@@ -3,10 +3,9 @@ package io.github.lucfr1746.llibrary.inventory;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.github.lucfr1746.llibrary.LLibrary;
-import io.github.lucfr1746.llibrary.itemstack.gui.ItemBuilderGUI;
 import io.github.lucfr1746.llibrary.util.helper.FileAPI;
+import io.github.lucfr1746.llibrary.util.helper.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -15,6 +14,7 @@ import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.inventory.Inventory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages custom inventories in the plugin.
@@ -23,9 +23,10 @@ import java.util.*;
 public class InventoryManager {
 
     private final Map<String, InventoryBuilder> baseMenus = new HashMap<>();
-    private final Map<Inventory, InventoryHandler> activeInventories = new HashMap<>();
-
+    private final Map<Inventory, InventoryHandler> activeInventories = new ConcurrentHashMap<>();
     private final List<InventoryBuilder> pluginGUIs = new ArrayList<>();
+    private final Set<String> registeredCommands = new HashSet<>();
+    private Logger logger;
 
     /**
      * Opens a custom GUI for a player by menu ID.
@@ -33,67 +34,43 @@ public class InventoryManager {
      * @param player The player who will see the GUI.
      */
     public void openGUI(String menuID, Player player) {
-        InventoryBuilder baseMenu = baseMenus.get(menuID);
-        if (baseMenu == null) {
-            LLibrary.getPluginLogger().warning("No menu found with ID: " + menuID);
-            return;
-        }
-
-        // Clone the base menu for the player
-        InventoryBuilder menuClone = baseMenu.clone();
-        menuClone.decorate(player);
-
-        // Register the clone to track interactions
-        registerActiveInventory(menuClone.getInventoryView().getTopInventory(), menuClone);
-
-        // Open the inventory for the player
-        Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> player.openInventory(menuClone.getInventoryView()));
+        Optional.ofNullable(baseMenus.get(menuID)).ifPresentOrElse(baseMenu -> {
+            InventoryBuilder menuClone = baseMenu.clone();
+            menuClone.decorate(player);
+            Inventory inventory = menuClone.getInventoryView().getTopInventory();
+            registerActiveInventory(inventory, menuClone);
+            Bukkit.getScheduler().runTask(LLibrary.getInstance(), () -> player.openInventory(menuClone.getInventoryView()));
+        }, () -> logger.warning("No menu found with ID: " + menuID));
     }
 
     /**
      * Loads necessary configurations for the inventory system.
      * This method initializes the base menus by loading configurations
      * from stored menu files.
-     * Menu registration happens dynamically when a player opens a menu.
      */
     public void load() {
-        LLibrary.getPluginLogger().info("Loading base menus...");
-        this.pluginGUIs.add(new ItemBuilderGUI());
-
+        this.logger = LLibrary.getPluginLogger();
+        this.logger.info("Loading base menus...");
         FileAPI fileAPI = new FileAPI(LLibrary.getInstance(), true);
         fileAPI.createFolderIfNotExist("menu");
-        fileAPI.getAllFiles("menu").forEach(file -> registerInventoryBuilder(fileAPI.convertToYAMLConfiguration(file)));
-
+        fileAPI.getAllFiles("menu").forEach(file -> {
+            InventoryBuilder inventoryBuilder = new InventoryBuilder();
+            inventoryBuilder.loadFromFile(fileAPI.convertToYAMLConfiguration(file));
+            registerInventoryBuilder(inventoryBuilder);
+            pluginGUIs.add(inventoryBuilder);
+        });
         Bukkit.getPluginManager().registerEvents(new InventoryListener(this), LLibrary.getInstance());
     }
 
     /**
      * Registers a new InventoryBuilder instance.
-     * This method adds the given inventory builder to the base menu map
-     * and registers associated open commands.
-     *
      * @param inventoryBuilder The InventoryBuilder instance to register.
-     * @throws IllegalStateException if an inventory with the same ID already exists.
      */
     public void registerInventoryBuilder(InventoryBuilder inventoryBuilder) {
-        if (baseMenus.containsKey(inventoryBuilder.getId()))
-            throw new IllegalStateException("Duplicate inventory builder id detected: " + inventoryBuilder.getId());
-        baseMenus.put(inventoryBuilder.getId(), inventoryBuilder);
+        if (baseMenus.putIfAbsent(inventoryBuilder.getId(), inventoryBuilder) != null) {
+            throw new IllegalStateException("Duplicate inventory builder ID: " + inventoryBuilder.getId());
+        }
         registerOpenCommands(inventoryBuilder);
-    }
-
-
-    /**
-     * Registers a new InventoryBuilder from a YAML file configuration.
-     * This method creates an InventoryBuilder from the provided configuration,
-     * loads its data, and registers it.
-     *
-     * @param fileConfiguration The FileConfiguration containing the menu data.
-     */
-    public void registerInventoryBuilder(FileConfiguration fileConfiguration) {
-        InventoryBuilder inventoryBuilder = new InventoryBuilder();
-        inventoryBuilder.loadFromFile(fileConfiguration);
-        registerInventoryBuilder(inventoryBuilder);
     }
 
     /**
@@ -102,22 +79,13 @@ public class InventoryManager {
      */
     public void unregisterInventoryBuilder(InventoryBuilder inventoryBuilder) {
         unregisterOpenCommands(inventoryBuilder);
-
-        Set<Inventory> inventoriesToRemove = new HashSet<>();
-        activeInventories.forEach((inventory, handler) -> {
-            if (handler.equals(inventoryBuilder)) {
-                inventoriesToRemove.add(inventory);
+        activeInventories.entrySet().removeIf(entry -> {
+            if (entry.getValue().equals(inventoryBuilder)) {
+                entry.getKey().getViewers().forEach(HumanEntity::closeInventory);
+                return true;
             }
+            return false;
         });
-
-        inventoriesToRemove.forEach(inventory -> {
-            inventory.getViewers().stream()
-                    .filter(entity -> entity instanceof Player)
-                    .forEach(HumanEntity::closeInventory);
-
-            unregisterInventory(inventory);
-        });
-
         baseMenus.remove(inventoryBuilder.getId());
     }
 
@@ -148,26 +116,24 @@ public class InventoryManager {
      * @param inventoryBuilder The InventoryBuilder containing commands to unregister.
      */
     private void unregisterOpenCommands(InventoryBuilder inventoryBuilder) {
-        List<String> openCommands = inventoryBuilder.getOpenCommands();
-
-        if (openCommands == null || openCommands.isEmpty()) return;
-
-        for (String cmd : openCommands) {
-            CommandAPI.unregister(cmd);
-        }
+        inventoryBuilder.getOpenCommands().forEach(cmd -> {
+            if (registeredCommands.remove(cmd)) {
+                CommandAPI.unregister(cmd);
+            }
+        });
     }
 
     /**
      * Disables the inventory manager and closes all active inventories.
      */
     public void disable() {
-        this.pluginGUIs.forEach(this::unregisterInventoryBuilder);
+        pluginGUIs.forEach(this::unregisterInventoryBuilder);
     }
 
     /**
      * Registers an active inventory to track interactions.
      * @param inventory The inventory instance.
-     * @param handler The handler to manage events for this inventory.
+     * @param handler The handler associated with this inventory.
      */
     private void registerActiveInventory(Inventory inventory, InventoryHandler handler) {
         activeInventories.put(inventory, handler);
@@ -175,7 +141,7 @@ public class InventoryManager {
 
     /**
      * Unregisters an inventory, removing it from tracking.
-     * @param inventory The inventory instance.
+     * @param inventory The inventory instance to unregister.
      */
     private void unregisterInventory(Inventory inventory) {
         activeInventories.remove(inventory);
@@ -213,10 +179,7 @@ public class InventoryManager {
      * @param eventProcessor The processor to handle the event.
      */
     private void processInventoryEvent(Inventory inventory, InventoryEventProcessor eventProcessor) {
-        InventoryHandler handler = activeInventories.get(inventory);
-        if (handler != null) {
-            eventProcessor.process(handler);
-        }
+        Optional.ofNullable(activeInventories.get(inventory)).ifPresent(eventProcessor::process);
     }
 
     /**

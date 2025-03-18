@@ -23,7 +23,8 @@ public final class LLibrary extends JavaPlugin {
     @Override
     public void onLoad() {
         plugin = this;
-        pluginLoader = new PluginLoader(this);
+        if (pluginLoader == null)
+            pluginLoader = new PluginLoader(this);
     }
 
     /**
