@@ -12,6 +12,7 @@ import org.bukkit.Registry;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -30,9 +31,7 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
         NONE
     }
 
-    private String id = "InventoryBuilder";
-
-    private String uuid = UUID.randomUUID().toString();
+    private String id = UUID.randomUUID().toString();
 
     private String title = "";
 
@@ -88,10 +87,6 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
 
     public String getId() {
         return this.id;
-    }
-
-    public String getUUID() {
-        return this.uuid;
     }
 
     public String getTitle() {
@@ -218,7 +213,6 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
     public InventoryBuilder clone() {
         try {
             InventoryBuilder clone = (InventoryBuilder) super.clone();
-            clone.uuid = UUID.randomUUID().toString();
 
             clone.openRequirements = new ArrayList<>(this.openRequirements);
             clone.openActions = new ArrayList<>(this.openActions);
@@ -242,7 +236,7 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
 
     public void loadFromFile(@Nullable FileConfiguration fileConfiguration) {
         if (fileConfiguration == null)
-            throw new IllegalArgumentException("The file must no be null!");
+            throw new IllegalArgumentException("The file must not be null!");
         loadID(fileConfiguration);
 
         List<Requirement> requirements;
@@ -253,12 +247,7 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
         }
         setOpenRequirements(requirements);
 
-        List<Action> actions;
-        if (!fileConfiguration.contains("open-action")) {
-            actions = new ArrayList<>();
-        } else {
-            actions = new ActionLoader().getActions(fileConfiguration.getStringList("open-action"));
-        }
+        List<Action> actions = getActionsOrEmpty("open-action", fileConfiguration);
         setOpenActions(actions);
 
         loadOpenCommands(fileConfiguration);
@@ -268,7 +257,7 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
     private void loadID(@NotNull FileConfiguration fileConfiguration) {
         String id = fileConfiguration.getString("menu-id");
         if (id == null) {
-            LLibrary.getPluginLogger().error("Missing menu-id which is required. Skipping...");
+            LLibrary.getPluginLogger().warning("Missing menu-id which is required. Generating random UUID for this menu...");
         }
         setId(id);
     }
@@ -339,6 +328,10 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
                 });
             }
 
+            List<Action> leftClick = getActionsOrEmpty("left-click-action", item);
+            List<Action> rightClick = getActionsOrEmpty("right-click-action", item);
+            List<Action> click = getActionsOrEmpty("click-action", item);
+
             String displayName = item.getString("display-name", "");
             List<String> lores = new ArrayList<>();
             Optional.ofNullable(item.get("lore")).ifPresent(lore -> {
@@ -362,8 +355,24 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
                     })
                     .consumer(event -> {
                         if (key.equals("close")) event.getWhoClicked().closeInventory();
+                        if (event.getClick() == ClickType.LEFT) {
+                            for (Action action : leftClick) {
+                                action.execute((Player) event.getWhoClicked());
+                            }
+                        } else if (event.getClick() == ClickType.RIGHT) {
+                            for (Action action : rightClick) {
+                                action.execute((Player) event.getWhoClicked());
+                            }
+                        }
+                        for (Action action : click) {
+                            action.execute((Player) event.getWhoClicked());
+                        }
                     });
             slots.forEach(slot -> addButton(slot, button));
         }
+    }
+
+    private List<Action> getActionsOrEmpty(String key, ConfigurationSection section) {
+        return section.contains(key) ? new ActionLoader().getActions(section.getStringList(key)) : Collections.emptyList();
     }
 }
