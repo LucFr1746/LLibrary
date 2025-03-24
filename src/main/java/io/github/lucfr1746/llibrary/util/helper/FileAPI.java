@@ -128,6 +128,28 @@ public class FileAPI {
         }
     }
 
+    public FileAPI renameFile(String oldName, String newName, String... folders) {
+        Path folderPath = this.pluginPath.resolve(Paths.get("", folders));
+        Path oldFilePath = folderPath.resolve(oldName);
+        Path newFilePath = folderPath.resolve(newName);
+
+        if (Files.notExists(oldFilePath)) {
+            throw new IllegalArgumentException("File not found: " + oldFilePath);
+        }
+
+        if (Files.exists(newFilePath)) {
+            throw new IllegalArgumentException("Target file already exists: " + newFilePath);
+        }
+
+        try {
+            Files.move(oldFilePath, newFilePath);
+            if (isLogger) this.plugin.getLogger().info("Renamed file: " + oldFilePath + " -> " + newFilePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to rename file: " + oldFilePath + " - " + e.getMessage(), e);
+        }
+        return this;
+    }
+
     public FileConfiguration convertToYAMLConfiguration(File file) {
         return YamlConfiguration.loadConfiguration(file);
     }
