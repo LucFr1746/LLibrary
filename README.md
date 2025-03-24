@@ -13,6 +13,8 @@ visit the [wiki on GitHub](https://github.com/LucFr1746/LLibrary/wiki).
 
 - **Item Builder**: Customize item stack, modifier item stack meta-data, modules id,... All of you can think of. **Custom GUI Item Editor**, etc.
 
+- **Chat Input**: Get player input to do another function.
+
 ## Question
 <details>
 <summary>Why 1.21.2 — 1.21.x ?</summary>
