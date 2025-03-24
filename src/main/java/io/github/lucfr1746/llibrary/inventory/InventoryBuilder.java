@@ -153,7 +153,8 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
     private void updateButton(Player player, int slot) {
         buttonMap.getOrDefault(slot, new TreeSet<>(Comparator.comparing(InventoryButton::getPriority).reversed()))
                 .stream()
-                .filter(button -> button.getViewRequirements().stream().allMatch(req -> req.evaluate(player)))
+                .filter(button -> button.getViewRequirements() == null ||
+                        button.getViewRequirements().stream().allMatch(req -> req.evaluate(player)))
                 .findFirst()
                 .ifPresentOrElse(button -> {
                     if (slot >= this.inventoryView.getTopInventory().getSize()) {
@@ -188,8 +189,8 @@ public class InventoryBuilder implements InventoryHandler, Cloneable {
         if (buttons == null || buttons.isEmpty()) return;
 
         buttons.stream()
-                .filter(button -> button.getViewRequirements().stream()
-                        .allMatch(req -> req.evaluate((Player) event.getWhoClicked())))
+                .filter(button -> button.getViewRequirements() == null ||
+                        button.getViewRequirements().stream().allMatch(req -> req.evaluate((Player) event.getWhoClicked())))
                 .findFirst()
                 .ifPresent(button -> {
                     if (button.getEventConsumer() != null) {
