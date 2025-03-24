@@ -22,10 +22,9 @@ class PluginLoader {
 
     private final InventoryManager inventoryManager;
 
-    private final SpigotConversationManager convoManager;
-
     private final Logger logger;
     private BukkitAudiences audiences;
+    private SpigotConversationManager convoManager;
     private Economy economy;
     private Permission permission;
 
@@ -42,12 +41,12 @@ class PluginLoader {
         registerCommands();
 
         this.inventoryManager = new InventoryManager();
-        this.convoManager = new SpigotConversationManager(this.plugin);
     }
 
     public void enable() {
         CommandAPI.onEnable();
         this.audiences = BukkitAudiences.create(this.plugin);
+        this.convoManager = new SpigotConversationManager(this.plugin);
         this.inventoryManager.load();
     }
 
