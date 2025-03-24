@@ -1,0 +1,35 @@
+package io.github.lucfr1746.llibrary.conversation.spigot;
+
+import io.github.lucfr1746.llibrary.conversation.base.ConversationContext;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+
+class BukkitConvoListener implements Listener {
+
+    private final BukkitConversationManager convoManager;
+
+    BukkitConvoListener(BukkitConversationManager manager) {
+        this.convoManager = manager;
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onChat(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        if (!convoManager.hasActiveConversation(player.getUniqueId())) {
+            return;
+        }
+        event.setCancelled(true);
+        convoManager.acceptInput(player.getUniqueId(), event.getMessage());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onQuit(PlayerQuitEvent event) {
+        convoManager.removePartner(event.getPlayer().getUniqueId());
+        convoManager.unregisterConversation(
+                event.getPlayer().getUniqueId(), ConversationContext.EndState.PARTNER_DISCONNECT);
+    }
+}
