@@ -122,6 +122,6 @@ public class EventsListener implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         ChatInputManager.completeAllRequests(
                 event.getEntity().getUniqueId(),
-                new ChatInputResponse(InputStatus.PLAYER_QUIT, ""));
+                new ChatInputResponse(InputStatus.PLAYER_DEATH, ""));
     }
 }
