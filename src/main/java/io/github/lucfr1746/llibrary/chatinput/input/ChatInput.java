@@ -1,11 +1,13 @@
 package io.github.lucfr1746.llibrary.chatinput.input;
 
+import io.github.lucfr1746.llibrary.LLibrary;
 import io.github.lucfr1746.llibrary.chatinput.input.enums.InputFlag;
 import io.github.lucfr1746.llibrary.chatinput.input.enums.InputMessage;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 /**
  * An abstract class that stands as base for all types of inputs.
@@ -16,6 +18,7 @@ public abstract class ChatInput {
     private List<String> allowedCommands = new ArrayList<>();
     private int attempts = -1;
     private int timeout = -1;
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     /**
      * Checks if the given input is valid.
@@ -33,9 +36,10 @@ public abstract class ChatInput {
      * */
     public final void sendMessage(@NotNull InputMessage type, @NotNull Player player) {
         if (!messages.containsKey(type)) return;
-        player.sendMessage(messages.get(type)
+        String message = messages.get(type)
                 .replace("{player}", player.getName())
-                .replace("{attempts}", String.valueOf(attempts)));
+                .replace("{attempts}", String.valueOf(attempts));
+        LLibrary.getAudiences().player(player).sendMessage(miniMessage.deserialize(message));
     }
 
     /**
@@ -48,10 +52,11 @@ public abstract class ChatInput {
      * */
     public final void sendMessage(@NotNull InputMessage type, @NotNull Player player, @NotNull String input) {
         if (!messages.containsKey(type)) return;
-        player.sendMessage(messages.get(type)
+        String message = messages.get(type)
                 .replace("{player}", player.getName())
                 .replace("{attempts}", String.valueOf(attempts))
-                .replace("{input}", input));
+                .replace("{input}", input);
+        LLibrary.getAudiences().player(player).sendMessage(miniMessage.deserialize(message));
     }
 
     /**
