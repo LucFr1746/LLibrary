@@ -1,0 +1,97 @@
+@options
+@packages
+-classpath
+'/home/runner/.m2/repository/org/spigotmc/spigot-api/1.21.2-R0.1-SNAPSHOT/spigot-api-1.21.2-R0.1-SNAPSHOT.jar:/home/runner/.m2/repository/com/google/guava/guava/32.1.2-jre/guava-32.1.2-jre.jar:/home/runner/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar:/home/runner/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/runner/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar:/home/runner/.m2/repository/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar:/home/runner/.m2/repository/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar:/home/runner/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar:/home/runner/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar:/home/runner/.m2/repository/org/joml/joml/1.10.5/joml-1.10.5.jar:/home/runner/.m2/repository/net/md-5/bungeecord-chat/1.20-R0.2/bungeecord-chat-1.20-R0.2.jar:/home/runner/.m2/repository/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar:/home/runner/.m2/repository/org/jetbrains/annotations/26.0.1/annotations-26.0.1.jar:/home/runner/.m2/repository/de/tr7zw/item-nbt-api-plugin/2.14.1/item-nbt-api-plugin-2.14.1.jar:/home/runner/.m2/repository/dev/jorel/commandapi-bukkit-shade/9.7.0/commandapi-bukkit-shade-9.7.0.jar:/home/runner/.m2/repository/net/kyori/adventure-platform-bukkit/4.3.4/adventure-platform-bukkit-4.3.4.jar:/home/runner/.m2/repository/net/kyori/adventure-platform-api/4.3.4/adventure-platform-api-4.3.4.jar:/home/runner/.m2/repository/net/kyori/adventure-text-serializer-bungeecord/4.3.4/adventure-text-serializer-bungeecord-4.3.4.jar:/home/runner/.m2/repository/net/kyori/adventure-text-serializer-legacy/4.13.1/adventure-text-serializer-legacy-4.13.1.jar:/home/runner/.m2/repository/net/kyori/adventure-nbt/4.13.1/adventure-nbt-4.13.1.jar:/home/runner/.m2/repository/net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar:/home/runner/.m2/repository/net/kyori/examination-string/1.3.0/examination-string-1.3.0.jar:/home/runner/.m2/repository/net/kyori/adventure-text-serializer-gson/4.13.1/adventure-text-serializer-gson-4.13.1.jar:/home/runner/.m2/repository/net/kyori/adventure-text-minimessage/4.19.0/adventure-text-minimessage-4.19.0.jar:/home/runner/.m2/repository/net/kyori/adventure-api/4.19.0/adventure-api-4.19.0.jar:/home/runner/.m2/repository/net/kyori/adventure-key/4.19.0/adventure-key-4.19.0.jar:/home/runner/.m2/repository/me/clip/placeholderapi/2.11.6/placeholderapi-2.11.6.jar:/home/runner/.m2/repository/org/bstats/bstats-bukkit/3.0.1/bstats-bukkit-3.0.1.jar:/home/runner/.m2/repository/org/bstats/bstats-base/3.0.1/bstats-base-3.0.1.jar:/home/runner/.m2/repository/com/github/MilkBowl/VaultAPI/1.7.1/VaultAPI-1.7.1.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'21'
+-sourcepath
+'/home/runner/work/LLibrary/LLibrary/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/home/runner/work/LLibrary/LLibrary/target/site/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'LLibrary 2.2.0 API'
+-use
+-version
+-windowtitle
+'LLibrary 2.2.0 API'
+io.github.lucfr1746.llibrary
+io.github.lucfr1746.llibrary.chatinput.input
+io.github.lucfr1746.llibrary.chatinput.input.enums
+io.github.lucfr1746.llibrary.chatinput.manager
+io.github.lucfr1746.llibrary.chatinput.request
+io.github.lucfr1746.llibrary.chatinput
+io.github.lucfr1746.llibrary.chatinput.response
+io.github.lucfr1746.llibrary.chatinput.response.enums
+io.github.lucfr1746.llibrary.util.helper
+io.github.lucfr1746.llibrary.util
+io.github.lucfr1746.llibrary.metrics
+io.github.lucfr1746.llibrary.itemstack
+io.github.lucfr1746.llibrary.itemstack.helper
+io.github.lucfr1746.llibrary.itemstack.component
+io.github.lucfr1746.llibrary.inventory
+io.github.lucfr1746.llibrary.requirement.list
+io.github.lucfr1746.llibrary.requirement
+io.github.lucfr1746.llibrary.action.list
+io.github.lucfr1746.llibrary.action
+/home/runner/.m2/repository/org/spigotmc/spigot-api/1.21.2-R0.1-SNAPSHOT/spigot-api-1.21.2-R0.1-SNAPSHOT.jar = 1729673038000
+/home/runner/.m2/repository/com/google/guava/guava/32.1.2-jre/guava-32.1.2-jre.jar = 1690838249000
+/home/runner/.m2/repository/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar = 1542650246000
+/home/runner/.m2/repository/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar = 1536694843000
+/home/runner/.m2/repository/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar = 1490936147000
+/home/runner/.m2/repository/org/checkerframework/checker-qual/3.33.0/checker-qual-3.33.0.jar = 1680540455000
+/home/runner/.m2/repository/com/google/errorprone/error_prone_annotations/2.18.0/error_prone_annotations-2.18.0.jar = 1673284883000
+/home/runner/.m2/repository/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar = 1673409222000
+/home/runner/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar = 1673019840000
+/home/runner/.m2/repository/org/joml/joml/1.10.5/joml-1.10.5.jar = 1661949058000
+/home/runner/.m2/repository/net/md-5/bungeecord-chat/1.20-R0.2/bungeecord-chat-1.20-R0.2.jar = 1705700403000
+/home/runner/.m2/repository/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar = 1693124795000
+/home/runner/.m2/repository/org/jetbrains/annotations/26.0.1/annotations-26.0.1.jar = 1728894629000
+/home/runner/.m2/repository/de/tr7zw/item-nbt-api-plugin/2.14.1/item-nbt-api-plugin-2.14.1.jar = 1734365598000
+/home/runner/.m2/repository/dev/jorel/commandapi-bukkit-shade/9.7.0/commandapi-bukkit-shade-9.7.0.jar = 1733342143000
+/home/runner/.m2/repository/net/kyori/adventure-platform-bukkit/4.3.4/adventure-platform-bukkit-4.3.4.jar = 1723013317000
+/home/runner/.m2/repository/net/kyori/adventure-platform-api/4.3.4/adventure-platform-api-4.3.4.jar = 1723013317000
+/home/runner/.m2/repository/net/kyori/adventure-text-serializer-bungeecord/4.3.4/adventure-text-serializer-bungeecord-4.3.4.jar = 1723013317000
+/home/runner/.m2/repository/net/kyori/adventure-text-serializer-legacy/4.13.1/adventure-text-serializer-legacy-4.13.1.jar = 1681080609000
+/home/runner/.m2/repository/net/kyori/adventure-nbt/4.13.1/adventure-nbt-4.13.1.jar = 1681080599000
+/home/runner/.m2/repository/net/kyori/examination-api/1.3.0/examination-api-1.3.0.jar = 1630797166000
+/home/runner/.m2/repository/net/kyori/examination-string/1.3.0/examination-string-1.3.0.jar = 1630797178000
+/home/runner/.m2/repository/net/kyori/adventure-text-serializer-gson/4.13.1/adventure-text-serializer-gson-4.13.1.jar = 1681080605000
+/home/runner/.m2/repository/net/kyori/adventure-text-minimessage/4.19.0/adventure-text-minimessage-4.19.0.jar = 1739748849000
+/home/runner/.m2/repository/net/kyori/adventure-api/4.19.0/adventure-api-4.19.0.jar = 1739748842000
+/home/runner/.m2/repository/net/kyori/adventure-key/4.19.0/adventure-key-4.19.0.jar = 1739748817000
+/home/runner/.m2/repository/me/clip/placeholderapi/2.11.6/placeholderapi-2.11.6.jar = 1726361107000
+/home/runner/.m2/repository/org/bstats/bstats-bukkit/3.0.1/bstats-bukkit-3.0.1.jar = 1676228175000
+/home/runner/.m2/repository/org/bstats/bstats-base/3.0.1/bstats-base-3.0.1.jar = 1676228167000
+/home/runner/.m2/repository/com/github/MilkBowl/VaultAPI/1.7.1/VaultAPI-1.7.1.jar = 1742924661404
+/home/runner/work/LLibrary/LLibrary/src/main/java = 1742924644751
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/package-search-index.js = 1742924668292
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/index.html = 1742924668237
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/module-search-index.js = 1742924668292
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/tag-search-index.js = 1742924668294
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/overview-tree.html = 1742924668233
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/allclasses-index.html = 1742924668290
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/element-list = 1742924667941
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/constant-values.html = 1742924668016
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/overview-summary.html = 1742924668372
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/index-all.html = 1742924668369
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/stylesheet.css = 1742924668376
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/search.html = 1742924668371
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/search-page.js = 1742924668379
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/member-search-index.js = 1742924668294
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/type-search-index.js = 1742924668293
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/help-doc.html = 1742924668375
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/script.js = 1742924668377
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/copy.svg = 1742924668377
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/search.js = 1742924668378
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/link.svg = 1742924668377
+/home/runner/work/LLibrary/LLibrary/target/site/apidocs/allpackages-index.html = 1742924668292
