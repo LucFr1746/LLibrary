@@ -1,6 +1,5 @@
 package io.github.lucfr1746.llibrary;
 
-import io.github.lucfr1746.llibrary.conversation.spigot.SpigotConversationManager;
 import io.github.lucfr1746.llibrary.inventory.InventoryManager;
 import io.github.lucfr1746.llibrary.util.helper.Logger;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -89,15 +88,6 @@ public final class LLibrary extends JavaPlugin {
      */
     public static BukkitAudiences getAudiences() {
         return pluginLoader.getAudiences();
-    }
-
-    /**
-     * Retrieves the instance of {@link SpigotConversationManager} used for handling chat input.
-     *
-     * @return the {@link SpigotConversationManager} instance managing active conversations.
-     */
-    public static SpigotConversationManager getChatInput() {
-        return pluginLoader.getConvoManager();
     }
 
     /**

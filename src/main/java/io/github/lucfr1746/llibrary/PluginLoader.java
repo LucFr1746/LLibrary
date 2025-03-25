@@ -3,7 +3,6 @@ package io.github.lucfr1746.llibrary;
 import dev.jorel.commandapi.*;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.StringArgument;
-import io.github.lucfr1746.llibrary.conversation.spigot.SpigotConversationManager;
 import io.github.lucfr1746.llibrary.inventory.InventoryManager;
 import io.github.lucfr1746.llibrary.util.helper.Logger;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -24,7 +23,6 @@ class PluginLoader {
 
     private final Logger logger;
     private BukkitAudiences audiences;
-    private SpigotConversationManager convoManager;
     private Economy economy;
     private Permission permission;
 
@@ -46,7 +44,6 @@ class PluginLoader {
     public void enable() {
         CommandAPI.onEnable();
         this.audiences = BukkitAudiences.create(this.plugin);
-        this.convoManager = new SpigotConversationManager(this.plugin);
         this.inventoryManager.load();
     }
 
@@ -64,10 +61,6 @@ class PluginLoader {
 
     public BukkitAudiences getAudiences() {
         return this.audiences;
-    }
-
-    public SpigotConversationManager getConvoManager() {
-        return this.convoManager;
     }
 
     public Hooks getHooks() {
